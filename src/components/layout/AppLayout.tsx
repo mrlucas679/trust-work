@@ -19,14 +19,16 @@ export const AppLayout = ({ children, showNavigation = true }: AppLayoutProps) =
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <TopNavigation />
-          <main className="flex-1">
-            {children}
-          </main>
-        </SidebarInset>
+      <div className="min-h-screen flex flex-col w-full">
+        <TopNavigation />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset>
+            <main className="flex-1 p-4">
+              {children}
+            </main>
+          </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   );

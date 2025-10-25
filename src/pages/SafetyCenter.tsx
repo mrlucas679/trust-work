@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Shield, 
-  AlertTriangle, 
-  UserX, 
-  MessageSquare, 
-  CheckCircle, 
+import {
+  Shield,
+  AlertTriangle,
+  UserX,
+  MessageSquare,
+  CheckCircle,
   Info,
   Flag,
   Lock,
@@ -71,7 +72,7 @@ const SafetyCenter = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button
@@ -228,7 +229,7 @@ const SafetyCenter = () => {
                   <span className="text-sm">Privacy Level</span>
                   <Badge>Medium</Badge>
                 </div>
-                
+
                 <Alert>
                   <Shield className="h-4 w-4" />
                   <AlertDescription>
@@ -240,7 +241,7 @@ const SafetyCenter = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 

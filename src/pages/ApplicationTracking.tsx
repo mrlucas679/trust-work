@@ -13,7 +13,7 @@ const ApplicationTracking = () => {
     {
       id: "1",
       jobTitle: "Frontend Developer",
-      company: "TechCorp Solutions", 
+      company: "TechCorp Solutions",
       appliedDate: "2024-01-15",
       status: "interview",
       progress: 75,
@@ -22,7 +22,7 @@ const ApplicationTracking = () => {
       verified: true
     },
     {
-      id: "2", 
+      id: "2",
       jobTitle: "UI/UX Designer",
       company: "StartupXYZ",
       appliedDate: "2024-01-10",
@@ -34,7 +34,7 @@ const ApplicationTracking = () => {
     },
     {
       id: "3",
-      jobTitle: "Project Manager", 
+      jobTitle: "Project Manager",
       company: "Global Industries",
       appliedDate: "2024-01-08",
       status: "accepted",
@@ -47,7 +47,7 @@ const ApplicationTracking = () => {
       id: "4",
       jobTitle: "Web Developer",
       company: "Local Agency",
-      appliedDate: "2024-01-05", 
+      appliedDate: "2024-01-05",
       status: "rejected",
       progress: 25,
       nextStep: "Application Closed",
@@ -80,7 +80,7 @@ const ApplicationTracking = () => {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'accepted': return 'default';
-      case 'interview': return 'secondary'; 
+      case 'interview': return 'secondary';
       case 'review': return 'outline';
       case 'rejected': return 'destructive';
       default: return 'secondary';
@@ -129,16 +129,16 @@ const ApplicationTracking = () => {
             </p>
             <div className="flex space-x-2">
               {app.hasMessages && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => navigate(`/chat/${app.id}`)}
                 >
                   <MessageCircle className="h-4 w-4" />
                 </Button>
               )}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => navigate(`/job/${app.id}`)}
               >
@@ -159,9 +159,7 @@ const ApplicationTracking = () => {
             <h1 className="text-3xl font-bold text-foreground">Application Tracking</h1>
             <p className="text-muted-foreground">Monitor your job application progress</p>
           </div>
-          <Button onClick={() => navigate('/dashboard/job-seeker')}>
-            Back to Dashboard
-          </Button>
+
         </div>
 
         {/* Stats Overview */}

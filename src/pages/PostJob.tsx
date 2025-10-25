@@ -7,14 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  X, 
-  Briefcase, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  Users, 
+import {
+  Plus,
+  X,
+  Briefcase,
+  MapPin,
+  DollarSign,
+  Clock,
+  Users,
   CheckCircle,
   AlertTriangle,
   Eye
@@ -46,7 +46,7 @@ const PostJob = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newRequirement, setNewRequirement] = useState("");
   const [newBenefit, setNewBenefit] = useState("");
-  
+
   const [formData, setFormData] = useState<JobForm>({
     title: "",
     company: "TechCorp Solutions", // Pre-filled from employer profile
@@ -92,7 +92,7 @@ const PostJob = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
+
     // Validate required fields
     if (!formData.title || !formData.location || !formData.type || !formData.description) {
       toast({
@@ -117,12 +117,12 @@ const PostJob = () => {
 
   const previewData = {
     ...formData,
-    salary: formData.salaryMin && formData.salaryMax 
-      ? `R${formData.salaryMin} - R${formData.salaryMax}`
-      : formData.salaryMin 
-        ? `From R${formData.salaryMin}`
+    salary: formData.salaryMin && formData.salaryMax
+      ? `${formData.salaryMin} - ${formData.salaryMax}`
+      : formData.salaryMin
+        ? `From ${formData.salaryMin}`
         : formData.salaryMax
-          ? `Up to R${formData.salaryMax}`
+          ? `Up to ${formData.salaryMax}`
           : "Salary not specified"
   };
 
@@ -135,9 +135,7 @@ const PostJob = () => {
             <h1 className="text-3xl font-bold text-foreground">Post a New Job</h1>
             <p className="text-muted-foreground">Find the perfect candidate for your team</p>
           </div>
-          <Button variant="outline" onClick={() => navigate('/dashboard/employer')}>
-            ← Back to Dashboard
-          </Button>
+
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -165,7 +163,7 @@ const PostJob = () => {
                       onChange={(e) => updateField('title', e.target.value)}
                     />
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-2 block">Company</label>
                     <Input
@@ -221,7 +219,7 @@ const PostJob = () => {
                       onChange={(e) => updateField('salaryMin', e.target.value)}
                     />
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-2 block">Max Salary</label>
                     <Input
@@ -267,7 +265,7 @@ const PostJob = () => {
                     />
                     <label htmlFor="remote" className="text-sm">Remote work available</label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="urgent"
@@ -301,7 +299,7 @@ const PostJob = () => {
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {formData.requirements.map((req, index) => (
                       <Badge key={index} variant="secondary" className="animate-scale-in">
@@ -329,7 +327,7 @@ const PostJob = () => {
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {formData.benefits.map((benefit, index) => (
                       <Badge key={index} variant="outline" className="animate-scale-in">
@@ -478,8 +476,8 @@ const PostJob = () => {
                     <p>• Verified employers get priority visibility</p>
                     <p>• You'll receive notifications for applications</p>
                   </div>
-                  
-                  <Button 
+
+                  <Button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                     size="lg"

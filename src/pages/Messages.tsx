@@ -20,7 +20,7 @@ const Messages = () => {
       avatar: "/placeholder.svg"
     },
     {
-      id: "2", 
+      id: "2",
       employer: "StartupXYZ",
       jobTitle: "UI/UX Designer",
       lastMessage: "Could you provide more details about your design process?",
@@ -33,7 +33,7 @@ const Messages = () => {
       employer: "Global Industries",
       jobTitle: "Project Manager",
       lastMessage: "We've reviewed your portfolio and are impressed!",
-      timestamp: "3 days ago", 
+      timestamp: "3 days ago",
       unread: true,
       avatar: "/placeholder.svg"
     }
@@ -47,9 +47,7 @@ const Messages = () => {
             <h1 className="text-3xl font-bold text-foreground">Messages</h1>
             <p className="text-muted-foreground">Communicate safely with verified employers</p>
           </div>
-          <Button onClick={() => navigate('/dashboard/job-seeker')}>
-            Back to Dashboard
-          </Button>
+
         </div>
 
         <Card className="mb-6">
@@ -63,11 +61,10 @@ const Messages = () => {
 
         <div className="space-y-4">
           {conversations.map((conversation) => (
-            <Card 
+            <Card
               key={conversation.id}
-              className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                conversation.unread ? 'border-primary/20 bg-primary/5' : ''
-              }`}
+              className={`cursor-pointer transition-colors hover:bg-muted/50 ${conversation.unread ? 'border-primary/20 bg-primary/5' : ''
+                }`}
               onClick={() => navigate(`/chat/${conversation.id}`)}
             >
               <CardContent className="p-6">
@@ -76,7 +73,7 @@ const Messages = () => {
                     <AvatarImage src={conversation.avatar} />
                     <AvatarFallback>{conversation.employer[0]}</AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-foreground truncate">
@@ -89,11 +86,11 @@ const Messages = () => {
                         <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-primary font-medium mb-2">
                       {conversation.jobTitle}
                     </p>
-                    
+
                     <p className="text-sm text-muted-foreground truncate">
                       {conversation.lastMessage}
                     </p>

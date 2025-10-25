@@ -14,29 +14,6 @@ import Welcome from "./pages/Welcome";
 const Auth = lazy(() => import("./pages/Auth"));
 const Setup = lazy(() => import("./pages/Setup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-import JobSeekerDashboard from "./pages/dashboard/JobSeekerDashboard";
-import EmployerDashboard from "./pages/dashboard/EmployerDashboard";
-import Jobs from "./pages/Jobs";
-import JobDetail from "./pages/JobDetail";
-import Apply from "./pages/Apply";
-import Gigs from "./pages/Gigs";
-import Portfolio from "./pages/Portfolio";
-import Profile from "./pages/Profile";
-import Assessments from "./pages/Assessments";
-import AssessmentTake from "./pages/AssessmentTake";
-import AssessmentResults from "./pages/AssessmentResults";
-import Messages from "./pages/Messages";
-import Chat from "./pages/Chat";
-import ApplicationTracking from "./pages/ApplicationTracking";
-import SafetyCenter from "./pages/SafetyCenter";
-import Reviews from "./pages/Reviews";
-import PostJob from "./pages/PostJob";
-import PostGig from "./pages/PostGig";
-import Settings from "./pages/Settings";
-import Help from "./pages/Help";
-import About from "./pages/About";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -91,36 +68,37 @@ const App = () => (
 
             {/* Main app routes with consistent layout */}
             <Route path="/" element={<AppLayout showNavigation={false}><Index /></AppLayout>} />
-            <Route path="/dashboard/job-seeker" element={<AppLayout><JobSeekerDashboard /></AppLayout>} />
-            <Route path="/dashboard/employer" element={<AppLayout><EmployerDashboard /></AppLayout>} />
-            <Route path="/jobs" element={<AppLayout><Jobs /></AppLayout>} />
-            <Route path="/job/:id" element={<AppLayout><JobDetail /></AppLayout>} />
-            <Route path="/apply/:id" element={<AppLayout><Apply /></AppLayout>} />
-            <Route path="/gigs" element={<AppLayout><Gigs /></AppLayout>} />
-            <Route path="/portfolio" element={<AppLayout><Portfolio /></AppLayout>} />
-            <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
-            <Route path="/profile/:userId" element={<AppLayout><Profile /></AppLayout>} />
-            <Route path="/assessments" element={<AppLayout><Assessments /></AppLayout>} />
-            <Route path="/assessment/:assessmentId" element={<AppLayout><AssessmentTake /></AppLayout>} />
-            <Route path="/assessment/:assessmentId/results" element={<AppLayout><AssessmentResults /></AppLayout>} />
-            <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
-            <Route path="/chat/:id" element={<AppLayout><Chat /></AppLayout>} />
-            <Route path="/applications" element={<AppLayout><ApplicationTracking /></AppLayout>} />
-            <Route path="/safety" element={<AppLayout><SafetyCenter /></AppLayout>} />
-            <Route path="/reviews" element={<AppLayout><Reviews /></AppLayout>} />
-            <Route path="/post-job" element={<AppLayout><PostJob /></AppLayout>} />
-            <Route path="/post-gig" element={<AppLayout><PostGig /></AppLayout>} />
-            <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-            <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
-            <Route path="/about" element={<AppLayout><About /></AppLayout>} />
-            <Route path="/terms" element={<AppLayout><Terms /></AppLayout>} />
-            <Route path="/privacy" element={<AppLayout><Privacy /></AppLayout>} />
+            <Route path="/dashboard/job-seeker" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><JobSeekerDashboard /></Suspense></AppLayout>} />
+            <Route path="/dashboard/employer" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><EmployerDashboard /></Suspense></AppLayout>} />
+            <Route path="/jobs" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Jobs /></Suspense></AppLayout>} />
+            <Route path="/job/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><JobDetail /></Suspense></AppLayout>} />
+            <Route path="/apply/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Apply /></Suspense></AppLayout>} />
+            <Route path="/gigs" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Gigs /></Suspense></AppLayout>} />
+            <Route path="/portfolio" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Portfolio /></Suspense></AppLayout>} />
+            <Route path="/profile" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Profile /></Suspense></AppLayout>} />
+            <Route path="/profile/:userId" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Profile /></Suspense></AppLayout>} />
+            <Route path="/assessments" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Assessments /></Suspense></AppLayout>} />
+            <Route path="/assessment/:assessmentId" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentTake /></Suspense></AppLayout>} />
+            <Route path="/assessment/:assessmentId/results" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentResults /></Suspense></AppLayout>} />
+            <Route path="/messages" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Messages /></Suspense></AppLayout>} />
+            <Route path="/chat/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Chat /></Suspense></AppLayout>} />
+            <Route path="/applications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><ApplicationTracking /></Suspense></AppLayout>} />
+            <Route path="/safety" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><SafetyCenter /></Suspense></AppLayout>} />
+            <Route path="/reviews" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Reviews /></Suspense></AppLayout>} />
+            <Route path="/post-job" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><PostJob /></Suspense></AppLayout>} />
+            <Route path="/post-gig" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><PostGig /></Suspense></AppLayout>} />
+            <Route path="/settings" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Settings /></Suspense></AppLayout>} />
+            <Route path="/help" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Help /></Suspense></AppLayout>} />
+            <Route path="/about" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><About /></Suspense></AppLayout>} />
+            <Route path="/terms" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Terms /></Suspense></AppLayout>} />
+            <Route path="/privacy" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Privacy /></Suspense></AppLayout>} />
 
             {/* 404 page without layout */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 

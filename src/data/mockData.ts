@@ -21,9 +21,17 @@ export interface Gig {
   client: string;
   duration: string;
   budget: string;
+  budgetRange: 'low' | 'medium' | 'high';
   skills: string[];
   verified: boolean;
   postedDate: string;
+  type: 'gig' | 'job';
+  remote: boolean;
+  companyDetails?: {
+    companySize: string;
+    industry: string;
+    location: string;
+  };
 }
 
 export interface User {
@@ -157,9 +165,12 @@ export const mockGigs: Gig[] = [
     client: 'StartupXYZ',
     duration: '3 days',
     budget: 'R2,500',
+    budgetRange: 'low',
     skills: ['Graphic Design', 'Adobe Illustrator'],
     verified: true,
-    postedDate: '2024-01-16'
+    postedDate: '2024-01-16',
+    type: 'gig',
+    remote: true
   },
   {
     id: '2',
@@ -167,10 +178,13 @@ export const mockGigs: Gig[] = [
     description: 'Set up a basic WordPress site with a custom theme.',
     client: 'Local Business Co',
     duration: '1 week',
-    budget: 'R4,000',
+    budget: '4,000',
+    budgetRange: 'medium',
     skills: ['WordPress', 'Web Development'],
     verified: true,
-    postedDate: '2024-01-15'
+    postedDate: '2024-01-15',
+    type: 'gig',
+    remote: true
   },
   {
     id: '3',
@@ -178,10 +192,51 @@ export const mockGigs: Gig[] = [
     description: 'Create 20 Instagram posts for a fashion brand.',
     client: 'Fashion Forward',
     duration: '5 days',
-    budget: 'R1,800',
+    budget: '1,800',
+    budgetRange: 'low',
     skills: ['Social Media', 'Content Creation', 'Canva'],
     verified: true,
-    postedDate: '2024-01-14'
+    postedDate: '2024-01-14',
+    type: 'gig',
+    remote: true
+  },
+  {
+    id: '4',
+    title: 'Senior Frontend Developer',
+    description: 'Looking for an experienced frontend developer to join our growing team.',
+    client: 'TechCorp Solutions',
+    duration: '3+ months',
+    budget: 'R45,000 - R65,000',
+    budgetRange: 'high',
+    skills: ['React', 'TypeScript', 'Node.js'],
+    verified: true,
+    postedDate: '2024-01-13',
+    type: 'job',
+    remote: true,
+    companyDetails: {
+      companySize: '51-200',
+      industry: 'technology',
+      location: 'Cape Town'
+    }
+  },
+  {
+    id: '5',
+    title: 'Digital Marketing Manager',
+    description: 'Lead our digital marketing efforts and grow our online presence.',
+    client: 'Digital Innovations',
+    duration: 'Full-time',
+    budget: 'R35,000 - R50,000',
+    budgetRange: 'high',
+    skills: ['Digital Marketing', 'SEO', 'Social Media Management'],
+    verified: true,
+    postedDate: '2024-01-12',
+    type: 'job',
+    remote: false,
+    companyDetails: {
+      companySize: '11-50',
+      industry: 'marketing',
+      location: 'Johannesburg'
+    }
   }
 ];
 
