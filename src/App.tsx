@@ -29,6 +29,11 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Assessments = lazy(() => import("./pages/Assessments"));
 const AssessmentTake = lazy(() => import("./pages/AssessmentTake"));
 const AssessmentResults = lazy(() => import("./pages/AssessmentResults"));
+const AssignmentDashboard = lazy(() => import("./pages/AssignmentDashboard"));
+const AssignmentWarning = lazy(() => import("./pages/AssignmentWarning"));
+const AssignmentQuiz = lazy(() => import("./pages/AssignmentQuiz"));
+const AssignmentResultsPage = lazy(() => import("./pages/AssignmentResults"));
+const AssignmentDetailedResults = lazy(() => import("./pages/AssignmentDetailedResults"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Chat = lazy(() => import("./pages/Chat"));
 const ApplicationTracking = lazy(() => import("./pages/ApplicationTracking"));
@@ -80,6 +85,11 @@ const App = () => (
             <Route path="/assessments" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Assessments /></Suspense></AppLayout>} />
             <Route path="/assessment/:assessmentId" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentTake /></Suspense></AppLayout>} />
             <Route path="/assessment/:assessmentId/results" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentResults /></Suspense></AppLayout>} />
+            <Route path="/assignments" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssignmentDashboard /></Suspense></AppLayout>} />
+            <Route path="/assignments/:skill/:level/warning" element={<Suspense fallback={<PageLoadingSpinner />}><AssignmentWarning /></Suspense>} />
+            <Route path="/assignments/:skill/:level/take" element={<Suspense fallback={<PageLoadingSpinner />}><AssignmentQuiz /></Suspense>} />
+            <Route path="/assignments/:skill/:level/results" element={<Suspense fallback={<PageLoadingSpinner />}><AssignmentResultsPage /></Suspense>} />
+            <Route path="/assignments/:skill/:level/detailed-results" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssignmentDetailedResults /></Suspense></AppLayout>} />
             <Route path="/messages" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Messages /></Suspense></AppLayout>} />
             <Route path="/chat/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Chat /></Suspense></AppLayout>} />
             <Route path="/applications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><ApplicationTracking /></Suspense></AppLayout>} />

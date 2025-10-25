@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Shield, 
-  CreditCard, 
-  Clock, 
-  CheckCircle, 
+import {
+  Shield,
+  CreditCard,
+  Clock,
+  CheckCircle,
   AlertTriangle,
   Lock,
   DollarSign
@@ -28,52 +28,52 @@ interface PaymentProtectionProps {
   className?: string;
 }
 
-const PaymentProtection = ({ 
-  amount, 
-  currency = 'ZAR', 
+const PaymentProtection = ({
+  amount,
+  currency = 'ZAR',
   status,
   milestones = [],
-  className 
+  className
 }: PaymentProtectionProps) => {
   const getStatusConfig = () => {
     switch (status) {
       case 'pending':
         return {
           icon: Clock,
-          label: 'Payment Pending',
-          description: 'Funds are being processed and will be held in escrow',
+          label: 'Gig Payment Pending',
+          description: 'Gig payment funds are being processed and will be held in escrow',
           color: 'text-warning',
           bgColor: 'bg-warning/10'
         };
       case 'held':
         return {
           icon: Shield,
-          label: 'Funds Protected',
-          description: 'Payment is securely held in escrow until work completion',
+          label: 'Gig Funds Protected',
+          description: 'Gig payment is securely held in escrow until work completion',
           color: 'text-primary',
           bgColor: 'bg-primary/10'
         };
       case 'released':
         return {
           icon: CheckCircle,
-          label: 'Payment Released',
-          description: 'Funds have been released to the freelancer',
+          label: 'Gig Payment Released',
+          description: 'Funds have been released to the freelancer for completed gig work',
           color: 'text-success',
           bgColor: 'bg-success/10'
         };
       case 'disputed':
         return {
           icon: AlertTriangle,
-          label: 'Payment Disputed',
-          description: 'Payment is under review due to a dispute',
+          label: 'Gig Payment Disputed',
+          description: 'Gig payment is under review due to a dispute',
           color: 'text-destructive',
           bgColor: 'bg-destructive/10'
         };
       default:
         return {
           icon: Shield,
-          label: 'Protected Payment',
-          description: 'Your payment is secure',
+          label: 'Protected Gig Payment',
+          description: 'Your gig payment is secure',
           color: 'text-muted-foreground',
           bgColor: 'bg-muted/10'
         };
@@ -82,7 +82,7 @@ const PaymentProtection = ({
 
   const config = getStatusConfig();
   const Icon = config.icon;
-  
+
   const completedMilestones = milestones.filter(m => m.status === 'completed').length;
   const progress = milestones.length > 0 ? (completedMilestones / milestones.length) * 100 : 0;
 
@@ -94,7 +94,7 @@ const PaymentProtection = ({
           Payment Protection
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Status Overview */}
         <div className={cn("p-4 rounded-lg", config.bgColor)}>
@@ -105,7 +105,7 @@ const PaymentProtection = ({
               <p className="text-sm text-muted-foreground">{config.description}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between mt-3">
             <span className="text-sm font-medium">Protected Amount:</span>
             <span className="text-lg font-bold">
@@ -123,9 +123,9 @@ const PaymentProtection = ({
                 {completedMilestones}/{milestones.length} Complete
               </Badge>
             </div>
-            
+
             <Progress value={progress} className="h-2" />
-            
+
             <div className="space-y-3">
               {milestones.map((milestone) => (
                 <div key={milestone.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -137,15 +137,15 @@ const PaymentProtection = ({
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <span className="font-medium">
                       {currency} {milestone.amount.toLocaleString()}
                     </span>
-                    <Badge 
+                    <Badge
                       variant={
                         milestone.status === 'completed' ? 'default' :
-                        milestone.status === 'approved' ? 'secondary' : 'outline'
+                          milestone.status === 'approved' ? 'secondary' : 'outline'
                       }
                     >
                       {milestone.status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -161,7 +161,7 @@ const PaymentProtection = ({
         {/* Security Features */}
         <div className="space-y-3">
           <h4 className="font-medium">Security Features</h4>
-          
+
           <div className="grid gap-2">
             <div className="flex items-center gap-2 text-sm">
               <CheckCircle className="h-4 w-4 text-success" />

@@ -4,7 +4,12 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Search, Shield, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-export const TopNavigation = () => {
+import { cn } from "@/lib/utils";
+interface TopNavigationProps {
+  className?: string;
+}
+
+export const TopNavigation = ({ className }: TopNavigationProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const handleSearch = (e: React.FormEvent) => {
@@ -17,7 +22,10 @@ export const TopNavigation = () => {
     navigate('/dashboard/job-seeker');
     window.location.reload();
   };
-  return <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 print:hidden">
+  return <header className={cn(
+    "w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 print:hidden",
+    className
+  )}>
     <div className="container mx-auto flex h-16 items-center justify-between px-4">
       {/* Left Section - Sidebar Trigger and Logo */}
       <div className="flex items-center gap-4">

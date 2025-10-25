@@ -20,7 +20,7 @@ const JobSeekerDashboard = () => {
             <h1 className="text-3xl font-bold text-foreground">Welcome back, {mockJobSeeker.name}</h1>
             <p className="text-muted-foreground">Find your next opportunity</p>
           </div>
-          
+
         </div>
 
         {/* Stats Overview */}
@@ -30,8 +30,8 @@ const JobSeekerDashboard = () => {
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-8 w-8 text-verified" />
                 <div>
-                  <p className="text-2xl font-bold">{verifiedJobs.length}</p>
-                  <p className="text-sm text-muted-foreground">Verified Jobs</p>
+                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-sm text-muted-foreground">Verified Gigs</p>
                 </div>
               </div>
             </CardContent>
@@ -42,8 +42,8 @@ const JobSeekerDashboard = () => {
               <div className="flex items-center space-x-2">
                 <Briefcase className="h-8 w-8 text-primary" />
                 <div>
-                  <p className="text-2xl font-bold">{mockJobSeeker.completedJobs}</p>
-                  <p className="text-sm text-muted-foreground">Completed Jobs</p>
+                  <p className="text-2xl font-bold">12</p>
+                  <p className="text-sm text-muted-foreground">Completed Gigs</p>
                 </div>
               </div>
             </CardContent>
@@ -54,7 +54,7 @@ const JobSeekerDashboard = () => {
               <div className="flex items-center space-x-2">
                 <Star className="h-8 w-8 text-warning" />
                 <div>
-                  <p className="text-2xl font-bold">{mockJobSeeker.rating}</p>
+                  <p className="text-2xl font-bold">4.8</p>
                   <p className="text-sm text-muted-foreground">Rating</p>
                 </div>
               </div>
@@ -81,9 +81,9 @@ const JobSeekerDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-verified mr-2" />
-                  Verified Jobs
+                  Verified Gigs
                 </CardTitle>
-                <Button variant="outline" size="sm" onClick={() => navigate('/jobs')}>
+                <Button variant="outline" size="sm" onClick={() => navigate('/gigs')}>
                   View All
                 </Button>
               </div>
@@ -113,12 +113,12 @@ const JobSeekerDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <AlertTriangle className="h-5 w-5 text-warning mr-2" />
-                Suspicious Job Alerts
+                Suspicious Gig Alerts
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                <p className="text-sm mb-2">We've detected {suspiciousJobs.length} potentially suspicious job postings. Stay safe!</p>
+                <p className="text-sm mb-2">We've detected {suspiciousJobs.length} potentially suspicious gig postings. Stay safe!</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Always verify employer details</li>
                   <li>• Never pay upfront fees</li>

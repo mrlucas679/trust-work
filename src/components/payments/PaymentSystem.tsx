@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  CreditCard, 
-  Shield, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  CreditCard,
+  Shield,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
   DollarSign,
   Wallet,
   Receipt,
@@ -64,7 +64,7 @@ const PaymentSystem = () => {
       id: '1',
       type: 'earning',
       amount: 2500,
-      description: 'Website Design Gig - WebDev Agency',
+      description: 'Website Design Gig Payment - WebDev Agency',
       date: '2024-01-20',
       status: 'completed',
       method: 'Bank Transfer'
@@ -73,7 +73,7 @@ const PaymentSystem = () => {
       id: '2',
       type: 'payment',
       amount: -150,
-      description: 'Platform Fee',
+      description: 'Gig Platform Fee',
       date: '2024-01-20',
       status: 'completed',
       method: 'Wallet Balance'
@@ -106,7 +106,7 @@ const PaymentSystem = () => {
 
   const handleWithdraw = async () => {
     setIsProcessing(true);
-    
+
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
@@ -144,7 +144,7 @@ const PaymentSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Available Balance</p>
+                <p className="text-sm text-muted-foreground">Available Gig Balance</p>
                 <p className="text-2xl font-bold">R{walletBalance.toLocaleString()}</p>
               </div>
               <Wallet className="h-8 w-8 text-primary" />
@@ -156,7 +156,7 @@ const PaymentSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Pending Earnings</p>
+                <p className="text-sm text-muted-foreground">Pending Gig Earnings</p>
                 <p className="text-2xl font-bold">R{pendingEarnings.toLocaleString()}</p>
               </div>
               <Clock className="h-8 w-8 text-warning" />
@@ -168,7 +168,7 @@ const PaymentSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Earned</p>
+                <p className="text-sm text-muted-foreground">Total Gig Earnings</p>
                 <p className="text-2xl font-bold">R{totalEarnings.toLocaleString()}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-success" />
@@ -188,7 +188,7 @@ const PaymentSystem = () => {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="overview">Gig Payments</TabsTrigger>
               <TabsTrigger value="methods">Payment Methods</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
@@ -233,7 +233,7 @@ const PaymentSystem = () => {
                         <p className="text-xs text-muted-foreground">Funds held safely until work completion</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-lg">
                       <Lock className="h-5 w-5 text-primary" />
                       <div>
@@ -241,7 +241,7 @@ const PaymentSystem = () => {
                         <p className="text-xs text-muted-foreground">Bank-level encryption for all payments</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
                       <AlertTriangle className="h-5 w-5 text-warning" />
                       <div>
@@ -259,7 +259,7 @@ const PaymentSystem = () => {
                 <h3 className="font-semibold">Payment Methods</h3>
                 <Button size="sm">Add New Method</Button>
               </div>
-              
+
               <div className="space-y-3">
                 {paymentMethods.map((method) => (
                   <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -308,7 +308,7 @@ const PaymentSystem = () => {
             <TabsContent value="withdraw" className="space-y-4">
               <div className="max-w-md">
                 <h3 className="font-semibold mb-4">Withdraw Funds</h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Amount to Withdraw</label>
@@ -345,7 +345,7 @@ const PaymentSystem = () => {
                     </p>
                   </div>
 
-                  <Button 
+                  <Button
                     onClick={handleWithdraw}
                     disabled={isProcessing}
                     className="w-full"

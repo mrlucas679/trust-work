@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Star, 
-  MapPin, 
-  Calendar, 
-  Briefcase, 
-  Award, 
+import {
+  Star,
+  MapPin,
+  Calendar,
+  Briefcase,
+  Award,
   Edit,
   Mail,
   Globe,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import VerificationBadge from "@/components/trust/VerificationBadge";
 import RiskIndicator from "@/components/trust/RiskIndicator";
+import CertificationDisplay from "@/components/certifications/CertificationDisplay";
 import { useNavigate, useParams } from "react-router-dom";
 import { mockJobSeeker, mockEmployer } from "@/data/mockData";
 
@@ -24,7 +25,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
   const isOwnProfile = !userId; // If no userId in params, it's the user's own profile
-  
+
   // For demo purposes, show job seeker profile
   const user = mockJobSeeker;
 
@@ -41,17 +42,17 @@ const Profile = () => {
                   {user.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold">{user.name}</h1>
-                  <VerificationBadge 
-                    type={user.verified ? "verified" : "pending"} 
+                  <VerificationBadge
+                    type={user.verified ? "verified" : "pending"}
                     details={user.verified ? ["Identity verified", "Skills assessed", "Background checked"] : ["Verification in progress"]}
                   />
                   <RiskIndicator level="low" reasons={["Verified identity", "Good reviews", "Consistent work history"]} />
                 </div>
-                
+
                 <div className="flex items-center gap-4 text-muted-foreground mb-4">
                   <div className="flex items-center">
                     <Mail className="h-4 w-4 mr-1" />
@@ -101,8 +102,8 @@ const Profile = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Experienced full-stack developer and digital marketing specialist with a passion for creating 
-                  innovative solutions. I help businesses grow through technology and strategic marketing campaigns. 
+                  Experienced full-stack developer and digital marketing specialist with a passion for creating
+                  innovative solutions. I help businesses grow through technology and strategic marketing campaigns.
                   With {user.completedJobs} successfully completed projects, I bring reliability and quality to every task.
                 </p>
               </CardContent>
@@ -143,6 +144,9 @@ const Profile = () => {
                 ))}
               </CardContent>
             </Card>
+
+            {/* Certifications */}
+            <CertificationDisplay isOwnProfile={isOwnProfile} />
           </div>
 
           {/* Sidebar */}

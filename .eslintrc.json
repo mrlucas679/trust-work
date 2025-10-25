@@ -1,0 +1,59 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:jsx-a11y/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint",
+        "react",
+        "react-hooks",
+        "jsx-a11y"
+    ],
+    "rules": {
+        // Enforce consistent code style
+        "indent": [
+            "error",
+            2
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        // Enforce good practices
+        "no-unused-vars": "error",
+        "no-console": "warn",
+        // React specific rules
+        "react/prop-types": "off", // We use TypeScript for type checking
+        "react/react-in-jsx-scope": "off", // Not needed in React 17+
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        // TypeScript specific rules
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "warn",
+        // Documentation rules
+        "require-jsdoc": [
+            "warn",
+            {
+                "require": {
+                    "FunctionDeclaration": true,
+                    "MethodDefinition": true,
+                    "ClassDeclaration": true
+                }
+            }
+        ]
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
+}
