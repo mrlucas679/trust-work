@@ -13,6 +13,9 @@ import Welcome from "./pages/Welcome";
 
 // Lazy load other pages
 const Auth = lazy(() => import("./pages/Auth"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Setup = lazy(() => import("./pages/Setup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -47,6 +50,8 @@ const Help = lazy(() => import("./pages/Help"));
 const About = lazy(() => import("./pages/About"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const BusinessVerificationPage = lazy(() => import("./pages/BusinessVerificationPage"));
+const BusinessVerificationReview = lazy(() => import("./pages/admin/BusinessVerificationReview"));
 
 import { ErrorBoundary } from "./components/ui/error-boundary";
 import { PageLoadingSpinner } from "./components/ui/loading-spinner";
@@ -66,6 +71,21 @@ const App = () => (
                 <Auth />
               </Suspense>
             } />
+            <Route path="/auth/callback" element={
+              <Suspense fallback={<PageLoadingSpinner />}>
+                <AuthCallback />
+              </Suspense>
+            } />
+            <Route path="/forgot-password" element={
+              <Suspense fallback={<PageLoadingSpinner />}>
+                <ForgotPassword />
+              </Suspense>
+            } />
+            <Route path="/reset-password" element={
+              <Suspense fallback={<PageLoadingSpinner />}>
+                <ResetPassword />
+              </Suspense>
+            } />
             <Route path="/setup" element={
               <Suspense fallback={<PageLoadingSpinner />}>
                 <Setup />
@@ -79,6 +99,7 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/job-seeker" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><JobSeekerDashboard /></Suspense></AppLayout>} />
               <Route path="/dashboard/employer" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><EmployerDashboard /></Suspense></AppLayout>} />
+              <Route path="/verify-business" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><BusinessVerificationPage /></Suspense></AppLayout>} />
               <Route path="/jobs" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Jobs /></Suspense></AppLayout>} />
               <Route path="/job/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><JobDetail /></Suspense></AppLayout>} />
               <Route path="/apply/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Apply /></Suspense></AppLayout>} />
@@ -106,6 +127,9 @@ const App = () => (
               <Route path="/about" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><About /></Suspense></AppLayout>} />
               <Route path="/terms" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Terms /></Suspense></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Privacy /></Suspense></AppLayout>} />
+
+              {/* Admin Routes */}
+              <Route path="/admin/verifications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><BusinessVerificationReview /></Suspense></AppLayout>} />
             </Route>
 
             {/* 404 page without layout */}

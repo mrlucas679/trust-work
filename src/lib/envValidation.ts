@@ -16,14 +16,36 @@ class EnvironmentError extends Error {
 }
 
 /**
+ * Get environment variables with fallback for testing
+ */
+function getEnvVars(): Record<string, unknown> {
+    // Check if we're in a test environment
+    if (typeof globalThis !== 'undefined') {
+        const globalWithImport = globalThis as typeof globalThis & {
+            import?: { meta?: { env?: Record<string, unknown> } }
+        };
+        if (globalWithImport.import?.meta?.env) {
+            return globalWithImport.import.meta.env;
+        }
+    }
+
+    // Try to access import.meta safely
+    try {
+        return import.meta.env;
+    } catch {
+        // Fallback for testing environment
+        return {};
+    }
+}/**
  * Validates and returns environment configuration
  * @throws {EnvironmentError} If required environment variables are missing
  */
 export function validateEnvironment(): EnvConfig {
     const errors: string[] = [];
+    const env = getEnvVars();
 
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const SUPABASE_URL = typeof env.VITE_SUPABASE_URL === 'string' ? env.VITE_SUPABASE_URL : '';
+    const SUPABASE_ANON_KEY = typeof env.VITE_SUPABASE_ANON_KEY === 'string' ? env.VITE_SUPABASE_ANON_KEY : '';
 
     if (!SUPABASE_URL) {
         errors.push('VITE_SUPABASE_URL is not defined');
@@ -77,9 +99,10 @@ function isValidUrl(url: string): boolean {
  * Gets environment config with safe fallbacks (for testing)
  */
 export function getEnvironment(): EnvConfig {
+    const env = getEnvVars();
     return {
-        SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
-        SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        SUPABASE_URL: typeof env.VITE_SUPABASE_URL === 'string' ? env.VITE_SUPABASE_URL : '',
+        SUPABASE_ANON_KEY: typeof env.VITE_SUPABASE_ANON_KEY === 'string' ? env.VITE_SUPABASE_ANON_KEY : '',
     };
 }
 

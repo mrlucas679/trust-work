@@ -14,7 +14,7 @@ const Setup = () => {
   const navigate = useNavigate();
   const { supabase, user } = useSupabase();
   const { toast } = useToast();
-  const userRole = localStorage.getItem('userRole') as 'job_seeker' | 'employer';
+  const [userRole, setUserRole] = useState<'job_seeker' | 'employer' | null>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState('');
   const [cvUploading, setCvUploading] = useState(false);
@@ -22,6 +22,7 @@ const Setup = () => {
   const [fullName, setFullName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -66,25 +67,65 @@ const Setup = () => {
   };
   useEffect(() => {
     let mounted = true;
-    async function loadCv() {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('cv_url')
-        .eq('id', user.id)
-        .single();
-      if (!mounted) return;
-      if (!error) setCvUrl(data?.cv_url ?? null);
+    async function loadProfile() {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('cv_url, role, display_name')
+          .eq('id', user.id)
+          .single();
+
+        if (!mounted) return;
+
+        if (!error && data) {
+          setCvUrl(data.cv_url ?? null);
+          setUserRole(data.role as 'job_seeker' | 'employer');
+
+          // Pre-fill name fields if already set
+          if (data.display_name) {
+            if (data.role === 'job_seeker') {
+              setFullName(data.display_name);
+            } else {
+              setCompanyName(data.display_name);
+            }
+          }
+        } else {
+          // If no profile exists, default to job_seeker
+          // This shouldn't happen in normal flow, but provides fallback
+          setUserRole('job_seeker');
+        }
+      } catch (err) {
+        console.error('Error loading profile:', err);
+        setUserRole('job_seeker'); // Default fallback
+      } finally {
+        setProfileLoading(false);
+      }
     }
-    loadCv();
+
+    loadProfile();
     return () => {
       mounted = false;
     };
   }, [supabase, user]);
 
-  const onChooseFile = () => fileInputRef.current?.click();
+  const onChooseFile = () => {
+    console.log('CV Upload button clicked (Setup page)');
+    console.log('File input ref:', fileInputRef.current);
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to upload your CV.' });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('File selected:', file?.name);
     if (!file) return;
     if (!user) {
       toast({ title: 'Not signed in', description: 'Please sign in to upload your CV.' });
@@ -96,7 +137,9 @@ const Setup = () => {
     }
     try {
       setCvUploading(true);
+      console.log('Starting CV upload...');
       const { url } = await uploadCv(file, user.id);
+      console.log('CV uploaded, URL:', url);
       const { error } = await supabase
         .from('profiles')
         .upsert({ id: user.id, cv_url: url });
@@ -104,14 +147,38 @@ const Setup = () => {
       setCvUrl(url);
       toast({ title: 'CV uploaded', description: 'Your CV has been uploaded successfully.' });
     } catch (err) {
+      console.error('CV upload error:', err);
       const msg = err instanceof Error ? err.message : 'Failed to upload CV';
-      toast({ title: 'Upload failed', description: msg });
+      toast({
+        title: 'Upload failed',
+        description: msg,
+        variant: 'destructive'
+      });
     } finally {
       setCvUploading(false);
       // reset input to allow selecting same file again
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+  // Show loading while determining user role
+  if (profileLoading || !userRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <Shield className="h-8 w-8 text-primary mr-2 animate-pulse" />
+              <CardTitle className="text-2xl">Loading Profile...</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/20 flex items-center justify-center p-4">
     <Card className="w-full max-w-2xl">
       <CardHeader className="text-center">

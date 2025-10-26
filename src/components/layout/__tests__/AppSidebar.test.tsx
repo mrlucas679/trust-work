@@ -94,10 +94,11 @@ describe('AppSidebar', () => {
         expect(screen.getByTestId('sidebar-group-label')).toHaveTextContent('Support');
     });
 
-    it('should render ThemeToggle component', () => {
+    it('should render Theme navigation item', () => {
         renderWithRouter(<AppSidebar isOpen={true} onClose={jest.fn()} />);
 
-        expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
+        // Theme is rendered as a navigation item
+        expect(screen.getByTestId('nav-theme')).toBeInTheDocument();
     });
 
     it('should call onClose when navigation item is clicked', () => {
