@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   User, Bell, Shield, Eye, Trash2, Upload,
-  Mail, Phone, MapPin, Edit, Save, X
+  Mail, Phone, MapPin, Edit, Save, X, FileText
 } from "lucide-react";
 import { mockJobSeeker } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
@@ -88,9 +88,19 @@ const Settings = () => {
     return () => { mounted = false; };
   }, [supabase, user]);
 
-  const onChooseFile = () => fileInputRef.current?.click();
+  const onChooseFile = () => {
+    console.log('CV Upload button clicked');
+    console.log('File input ref:', fileInputRef.current);
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to upload your CV.' });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('File selected:', file?.name);
     if (!file) return;
     if (!user) {
       toast({ title: 'Not signed in', description: 'Please sign in to upload your CV.' });
@@ -102,14 +112,21 @@ const Settings = () => {
     }
     try {
       setCvUploading(true);
+      console.log('Starting CV upload...');
       const { url } = await uploadCv(file, user.id);
+      console.log('CV uploaded, URL:', url);
       const { error } = await supabase.from('profiles').upsert({ id: user.id, cv_url: url });
       if (error) throw error;
       setCvUrl(url);
       toast({ title: 'CV uploaded', description: 'Your CV has been uploaded successfully.' });
     } catch (err) {
+      console.error('CV upload error:', err);
       const msg = err instanceof Error ? err.message : 'Failed to upload CV';
-      toast({ title: 'Upload failed', description: msg });
+      toast({
+        title: 'Upload failed',
+        description: msg,
+        variant: 'destructive'
+      });
     } finally {
       setCvUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

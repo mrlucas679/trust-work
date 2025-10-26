@@ -7,14 +7,26 @@ export default {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     },
+    // Mock import.meta for Vite compatibility
+    globals: {
+        'import.meta': {
+            env: {
+                DEV: false,
+                PROD: true,
+                MODE: 'test',
+                VITE_SUPABASE_URL: 'https://test.supabase.co',
+                VITE_SUPABASE_ANON_KEY: 'test-key'
+            }
+        }
+    },
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', {
             tsconfig: {
                 jsx: 'react-jsx',
                 esModuleInterop: true,
                 allowSyntheticDefaultImports: true,
-                module: 'ESNext',
-                moduleResolution: 'bundler',
+                module: 'CommonJS',
+                moduleResolution: 'node',
                 resolveJsonModule: true,
                 isolatedModules: true,
                 skipLibCheck: true,
@@ -30,6 +42,9 @@ export default {
             }
         }]
     },
+    transformIgnorePatterns: [
+        'node_modules/(?!(.*\\.mjs$))'
+    ],
     // Coverage configuration
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}',

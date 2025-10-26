@@ -13,6 +13,17 @@ create table if not exists public.profiles (
     ) not null default 'job_seeker',
     -- Public URL to the user's uploaded CV/resume in Supabase Storage
     cv_url text,
+    -- Business verification fields (for employers)
+    business_name text,
+    business_verified boolean not null default false,
+    business_verification_status text check (
+        business_verification_status in ('not_started', 'pending', 'verified', 'rejected')
+    ) not null default 'not_started',
+    business_verification_submitted_at timestamptz,
+    business_verification_completed_at timestamptz,
+    verification_badge_level text check (
+        verification_badge_level in ('none', 'basic', 'premium', 'enterprise')
+    ) not null default 'none',
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -116,3 +127,63 @@ create index if not exists notifications_user_id_created_at_idx on public.notifi
 
 -- Ensure cv_url column exists on profiles for environments where the table was created before this field was added
 alter table public.profiles add column if not exists cv_url text;
+
+-- Add business verification columns if they don't exist
+alter table public.profiles add column if not exists business_name text;
+alter table public.profiles add column if not exists business_verified boolean not null default false;
+alter table public.profiles add column if not exists business_verification_status text check (
+    business_verification_status in ('not_started', 'pending', 'verified', 'rejected')
+) not null default 'not_started';
+alter table public.profiles add column if not exists business_verification_submitted_at timestamptz;
+alter table public.profiles add column if not exists business_verification_completed_at timestamptz;
+alter table public.profiles add column if not exists verification_badge_level text check (
+    verification_badge_level in ('none', 'basic', 'premium', 'enterprise')
+) not null default 'none';
+
+-- Business verification details table (stores full verification data)
+create table if not exists public.business_verifications (
+    id uuid primary key default gen_random_uuid (),
+    user_id uuid not null references auth.users (id) on delete cascade,
+    business_name text not null,
+    ein text,
+    business_number text,
+    address_street text not null,
+    address_city text not null,
+    address_state text not null,
+    address_zip text not null,
+    address_country text not null default 'US',
+    website text,
+    email text,
+    phone text,
+    verification_result jsonb,
+    status text check (
+        status in ('pending', 'approved', 'rejected')
+    ) not null default 'pending',
+    reviewed_by uuid references auth.users (id),
+    reviewed_at timestamptz,
+    notes text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+-- RLS policies for business_verifications
+alter table public.business_verifications enable row level security;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'business_verifications' and policyname = 'Business verifications select own'
+  ) then
+    create policy "Business verifications select own" on public.business_verifications
+      for select using (auth.uid() = user_id);
+  end if;
+  if not exists (
+    select 1 from pg_policies where tablename = 'business_verifications' and policyname = 'Business verifications insert own'
+  ) then
+    create policy "Business verifications insert own" on public.business_verifications
+      for insert with check (auth.uid() = user_id);
+  end if;
+end $$;
+
+-- Index for efficient queries
+create index if not exists business_verifications_user_id_idx on public.business_verifications (user_id);
+create index if not exists business_verifications_status_idx on public.business_verifications (status);

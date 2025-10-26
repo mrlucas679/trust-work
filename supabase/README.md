@@ -18,15 +18,32 @@ Follow these steps to get the database and policies in place and the app connect
 
 ## 2.5) Create Storage bucket for CVs
 
+**Important**: This step is required for CV upload functionality to work.
+
+### Option A: Using Supabase Dashboard (Recommended)
+
 - In Supabase dashboard, go to Storage > Create bucket
-- Name: `resumes`
+- Name: `resumes` (must be exactly this)
 - Public bucket: Enabled (OK for MVP; you can lock down and proxy later)
-- CORS: Add your local/dev origins (e.g., `http://localhost:5173`) if needed
+- File size limit: 10 MB
+- Allowed MIME types: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- CORS: Add your local/dev origins (e.g., `http://localhost:8080` - see vite.config.ts) if needed
+
+### Option B: Using SQL (Advanced)
+
+- Run the script in `supabase/storage-setup.sql` in the SQL Editor
+- This creates the bucket and sets up the necessary storage policies
+
+### Detailed Instructions
+
+For comprehensive setup instructions and troubleshooting, see:
+- **`supabase/STORAGE_SETUP_GUIDE.md`** - Complete guide with screenshots and troubleshooting
 
 Notes:
 
 - Our app uploads files to `resumes/{userId}/cv.pdf` style paths.
 - We store the public URL in `profiles.cv_url` and validate it client-side (http/https + Supabase public storage path) for safety.
+- If you see "bucket not found" errors when uploading CVs, this bucket is missing.
 
 ## 3) Configure environment variables (Vite)
 

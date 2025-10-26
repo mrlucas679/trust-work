@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, User, Building } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSupabase } from "@/providers/SupabaseProvider";
+import { SocialAuth } from "@/components/auth/SocialAuth";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -215,6 +216,13 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="signin" className="space-y-4 mt-6">
+              <SocialAuth
+                role={selectedRole}
+                disabled={loading}
+                onSuccess={afterAuthNavigate}
+                onError={setError}
+              />
+
               <div className="space-y-2">
                 <Label htmlFor="signin-email">Email</Label>
                 <Input
@@ -228,7 +236,17 @@ const Auth = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signin-password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="signin-password">Password</Label>
+                  <Button
+                    variant="link"
+                    className="px-0 font-normal text-xs h-auto"
+                    onClick={() => navigate('/forgot-password')}
+                    type="button"
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
                 <Input
                   id="signin-password"
                   type="password"
@@ -255,6 +273,13 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4 mt-6">
+              <SocialAuth
+                role={selectedRole}
+                disabled={loading}
+                onSuccess={afterAuthNavigate}
+                onError={setError}
+              />
+
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>
                 <Input

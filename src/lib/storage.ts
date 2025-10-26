@@ -10,9 +10,14 @@ export type UploadResult = {
 /**
  * Upload a CV/resume file to Supabase Storage and return its public URL.
  * Assumes the 'resumes' bucket has public read access (or adjust to use signed URLs).
+ * 
+ * @throws {Error} If the bucket doesn't exist, provides setup instructions
+ * @throws {Error} If user is not authenticated
+ * @throws {Error} If upload fails for any reason
  */
 export async function uploadCv(file: File, userId: string): Promise<UploadResult> {
     if (!userId) throw new Error('Not authenticated')
+    
     const ext = file.name.split('.').pop() || 'pdf'
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_')
     const filePath = `${userId}/${Date.now()}-${sanitized}`
@@ -25,7 +30,20 @@ export async function uploadCv(file: File, userId: string): Promise<UploadResult
             contentType: file.type || (ext === 'pdf' ? 'application/pdf' : undefined),
         })
 
-    if (uploadErr) throw uploadErr
+    if (uploadErr) {
+        // Provide helpful error message if bucket doesn't exist
+        if (uploadErr.message?.toLowerCase().includes('bucket') && 
+            (uploadErr.message?.toLowerCase().includes('not found') || 
+             uploadErr.message?.toLowerCase().includes('does not exist'))) {
+            throw new Error(
+                `Storage bucket '${RESUMES_BUCKET}' not found. ` +
+                'Please create the bucket in Supabase Dashboard (Storage > Create bucket > Name: "resumes") ' +
+                'or run the setup script in supabase/storage-setup.sql. ' +
+                'See supabase/STORAGE_SETUP_GUIDE.md for detailed instructions.'
+            )
+        }
+        throw uploadErr
+    }
 
     const { data } = supabase.storage.from(RESUMES_BUCKET).getPublicUrl(filePath)
     const publicUrl = data.publicUrl

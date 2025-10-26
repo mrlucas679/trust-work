@@ -2,17 +2,25 @@
 import '@testing-library/jest-dom';
 
 // Mock import.meta for Vite env variables
-(globalThis as unknown as { import: { meta: { env: Record<string, unknown> } } }).import = {
-    meta: {
-        env: {
-            DEV: false,
-            PROD: true,
-            MODE: 'test',
-            VITE_SUPABASE_URL: 'https://test-project.supabase.co',
-            VITE_SUPABASE_ANON_KEY: 'test-anon-key-1234567890abcdefghijklmnopqrstuvwxyz',
-        }
+const importMeta = {
+    env: {
+        DEV: false,
+        PROD: true,
+        MODE: 'test',
+        VITE_SUPABASE_URL: 'https://test-project.supabase.co',
+        VITE_SUPABASE_ANON_KEY: 'test-anon-key-1234567890abcdefghijklmnopqrstuvwxyz',
     }
 };
+
+// Set import.meta globally
+Object.defineProperty(globalThis, 'import', {
+    value: { meta: importMeta },
+    writable: true,
+    configurable: true
+});
+
+// Also mock for any direct import.meta access
+(globalThis as any).importMeta = importMeta;
 
 // Mock Supabase client
 jest.mock('@supabase/supabase-js', () => ({
