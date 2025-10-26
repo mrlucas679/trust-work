@@ -28,8 +28,7 @@ This guide will help you set up the Supabase storage bucket required for CV uplo
 
 3. **Configure CORS (if needed)**
    - If you're running the app locally or on a custom domain, add your origins:
-     - `http://localhost:8080` (for local development)
-     - `http://localhost:5173` (alternative local port)
+     - `http://localhost:8080` (for local development - configured in vite.config.ts)
      - Your production domain
 
 4. **Set Storage Policies**

@@ -16,7 +16,7 @@ VALUES (
   'resumes',
   'resumes',
   true,  -- Public bucket for MVP (can be changed to false for private access)
-  10485760,  -- 10MB file size limit
+  10485760,  -- 10MB file size limit (10 * 1024 * 1024 bytes)
   ARRAY['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']::text[]
 )
 ON CONFLICT (id) DO NOTHING;

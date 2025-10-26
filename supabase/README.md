@@ -27,7 +27,7 @@ Follow these steps to get the database and policies in place and the app connect
 - Public bucket: Enabled (OK for MVP; you can lock down and proxy later)
 - File size limit: 10 MB
 - Allowed MIME types: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
-- CORS: Add your local/dev origins (e.g., `http://localhost:8080`) if needed
+- CORS: Add your local/dev origins (e.g., `http://localhost:8080` - see vite.config.ts) if needed
 
 ### Option B: Using SQL (Advanced)
 
