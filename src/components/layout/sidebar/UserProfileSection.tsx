@@ -66,15 +66,18 @@ export function UserProfileSection({
                     <AvatarFallback className="bg-primary/5">{initials}</AvatarFallback>
                 </Avatar>
                 {verified && (
-                    <BadgeCheck className={cn(
-                        "h-4 w-4",                    // Size
-                        "text-primary",               // Color
-                        "absolute -bottom-1 -right-1", // Position
-                        "bg-background rounded-full",  // Background
-                        "shadow-sm",                  // Shadow
-                        "transition-all duration-200", // Animation
-                        "group-hover:scale-110"       // Hover effect
-                    )} />
+                    <BadgeCheck
+                        data-testid="verification-badge"
+                        className={cn(
+                            "h-4 w-4",                    // Size
+                            "text-primary",               // Color
+                            "absolute -bottom-1 -right-1", // Position
+                            "bg-background rounded-full",  // Background
+                            "shadow-sm",                  // Shadow
+                            "transition-all duration-200", // Animation
+                            "group-hover:scale-110"       // Hover effect
+                        )}
+                    />
                 )}
             </div>
             {/* User Information Section */}
@@ -101,7 +104,8 @@ export function UserProfileSection({
                         "transition-colors duration-200",    // Animation
                         "hover:text-muted-foreground"       // Hover effect
                     )}>
-                        ⭐ {rating.toFixed(1)} · {completedJobs} jobs
+                        <span aria-hidden>⭐</span>{' '}
+                        <span>{rating.toFixed(1)} · {completedJobs} jobs</span>
                     </p>
                 )}
 

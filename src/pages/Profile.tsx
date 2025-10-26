@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useEffect, useState } from "react";
 import {
   Star,
   MapPin,
@@ -20,14 +21,45 @@ import RiskIndicator from "@/components/trust/RiskIndicator";
 import CertificationDisplay from "@/components/certifications/CertificationDisplay";
 import { useNavigate, useParams } from "react-router-dom";
 import { mockJobSeeker, mockEmployer } from "@/data/mockData";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
   const isOwnProfile = !userId; // If no userId in params, it's the user's own profile
+  const { supabase, user: authUser } = useSupabase();
+  const [cvUrl, setCvUrl] = useState<string | null>(null);
+  const safeCvUrl = (() => {
+    if (!cvUrl) return null;
+    try {
+      const u = new URL(cvUrl);
+      const isHttp = u.protocol === 'https:' || u.protocol === 'http:';
+      const isSupabasePublic = cvUrl.includes('/storage/v1/object/public/');
+      return isHttp && isSupabasePublic ? cvUrl : null;
+    } catch {
+      return null;
+    }
+  })();
 
   // For demo purposes, show job seeker profile
   const user = mockJobSeeker;
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadCv() {
+      const targetId = userId ?? authUser?.id;
+      if (!targetId) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('cv_url')
+        .eq('id', targetId)
+        .single();
+      if (!mounted) return;
+      if (!error) setCvUrl(data?.cv_url ?? null);
+    }
+    loadCv();
+    return () => { mounted = false; };
+  }, [supabase, userId, authUser?.id]);
 
   return (
     <div className="min-h-screen bg-muted/20 p-6">
@@ -81,12 +113,20 @@ const Profile = () => {
                   </div>
                 </div>
 
-                {isOwnProfile && (
-                  <Button onClick={() => navigate('/profile/edit')}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
+                <div className="flex items-center gap-3 mt-2">
+                  {isOwnProfile && (
+                    <Button onClick={() => navigate('/profile/edit')}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  )}
+                  <Button variant="outline" disabled={!safeCvUrl} asChild>
+                    {/* If no CV available, keep disabled; when available, link opens in new tab */}
+                    <a href={safeCvUrl ?? undefined} target={safeCvUrl ? "_blank" : undefined} rel={safeCvUrl ? "noreferrer" : undefined}>
+                      View CV
+                    </a>
                   </Button>
-                )}
+                </div>
               </div>
             </div>
           </CardContent>

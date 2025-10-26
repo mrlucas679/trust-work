@@ -9,7 +9,25 @@ export default {
     },
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', {
-            tsconfig: 'tsconfig.json'
+            tsconfig: {
+                jsx: 'react-jsx',
+                esModuleInterop: true,
+                allowSyntheticDefaultImports: true,
+                module: 'ESNext',
+                moduleResolution: 'bundler',
+                resolveJsonModule: true,
+                isolatedModules: true,
+                skipLibCheck: true,
+                strict: true,
+                noUnusedLocals: true,
+                noUnusedParameters: true,
+                noFallthroughCasesInSwitch: true,
+                noUncheckedSideEffectImports: true,
+                baseUrl: '.',
+                paths: {
+                    '@/*': ['./src/*']
+                }
+            }
         }]
     },
     // Coverage configuration

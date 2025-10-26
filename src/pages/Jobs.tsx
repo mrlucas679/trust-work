@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle, AlertTriangle, MapPin, Clock, DollarSign, Search, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { mockJobs } from "@/data/mockData";
+import { PageHeader } from "@/components/layout/PageHeader";
 const Jobs = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,13 +26,10 @@ const Jobs = () => {
       {/* Header */}
       <div className="bg-card border-b">
         <div className="max-w-7xl mx-auto p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Job Opportunities</h1>
-              <p className="text-muted-foreground">Find verified jobs from trusted employers</p>
-            </div>
-
-          </div>
+          <PageHeader
+            title="Job Opportunities"
+            subtitle="Find verified jobs from trusted employers"
+          />
 
           {/* Search and Filters */}
           <div className="flex flex-col md:flex-row gap-4">

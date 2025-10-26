@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ interface MatchScore {
   type: 'job' | 'gig';
 }
 
-const MatchingEngine = () => {
+const MatchingEngine = memo(() => {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchScore[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -35,7 +35,7 @@ const MatchingEngine = () => {
   const calculateMatches = (): MatchScore[] => {
     const userSkills = mockJobSeeker.skills.map(s => s.toLowerCase());
     const userExperience = 3; // Mock experience years
-    
+
     const allOpportunities = [
       ...mockJobs.map(job => ({ ...job, type: 'job' as const })),
       ...mockGigs.map(gig => ({ ...gig, type: 'gig' as const, requirements: gig.skills }))
@@ -48,10 +48,10 @@ const MatchingEngine = () => {
 
         // Skill matching (40% weight)
         const reqSkills = opportunity.requirements?.map(r => r.toLowerCase()) || [];
-        const skillMatches = reqSkills.filter(skill => 
+        const skillMatches = reqSkills.filter(skill =>
           userSkills.some(userSkill => userSkill.includes(skill) || skill.includes(userSkill))
         );
-        
+
         if (skillMatches.length > 0) {
           const skillScore = (skillMatches.length / reqSkills.length) * 40;
           score += skillScore;
@@ -78,8 +78,8 @@ const MatchingEngine = () => {
 
         // Location matching (15% weight)
         const opportunityLocation = opportunity.type === 'job' ? opportunity.location : 'remote';
-        if (opportunityLocation?.toLowerCase().includes('remote') || 
-            mockJobSeeker.location?.toLowerCase().includes(opportunityLocation?.toLowerCase() || '')) {
+        if (opportunityLocation?.toLowerCase().includes('remote') ||
+          mockJobSeeker.location?.toLowerCase().includes(opportunityLocation?.toLowerCase() || '')) {
           score += 15;
           matchReasons.push("Location preference match");
         } else {
@@ -161,7 +161,7 @@ const MatchingEngine = () => {
           </Badge>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {matches.map((match, index) => (
           <div
@@ -173,7 +173,7 @@ const MatchingEngine = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-semibold">{match.title}</h3>
-                  <Badge 
+                  <Badge
                     variant={match.type === 'job' ? 'default' : 'secondary'}
                     className="text-xs"
                   >
@@ -182,7 +182,7 @@ const MatchingEngine = () => {
                 </div>
                 <p className="text-sm text-muted-foreground">{match.company}</p>
               </div>
-              
+
               <div className="text-right">
                 <div className={`text-lg font-bold ${getScoreColor(match.score)}`}>
                   {match.score}%
@@ -195,8 +195,8 @@ const MatchingEngine = () => {
 
             {/* Match Score Visualization */}
             <div className="mb-3">
-              <Progress 
-                value={match.score} 
+              <Progress
+                value={match.score}
                 className="h-2"
               />
             </div>
@@ -204,9 +204,9 @@ const MatchingEngine = () => {
             {/* Match Reasons */}
             <div className="flex flex-wrap gap-1 mb-3">
               {match.matchReasons.slice(0, 3).map((reason, idx) => (
-                <Badge 
-                  key={idx} 
-                  variant="outline" 
+                <Badge
+                  key={idx}
+                  variant="outline"
                   className="text-xs"
                 >
                   {reason.includes('⚠️') ? (
@@ -225,16 +225,16 @@ const MatchingEngine = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={() => navigate(match.type === 'job' ? `/job/${match.jobId}` : `/gigs`)}
                 className="flex-1"
               >
                 View Details
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => navigate(match.type === 'job' ? `/apply/${match.jobId}` : `/gigs`)}
               >
@@ -247,8 +247,8 @@ const MatchingEngine = () => {
         {matches.length === 0 && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No matches found at the moment.</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="mt-4"
               onClick={() => navigate('/profile')}
             >
@@ -273,6 +273,8 @@ const MatchingEngine = () => {
       </CardContent>
     </Card>
   );
-};
+});
+
+MatchingEngine.displayName = 'MatchingEngine';
 
 export default MatchingEngine;

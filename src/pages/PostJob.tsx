@@ -64,7 +64,7 @@ const PostJob = () => {
     department: ""
   });
 
-  const updateField = (field: keyof JobForm, value: any) => {
+  const updateField = <K extends keyof JobForm>(field: K, value: JobForm[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

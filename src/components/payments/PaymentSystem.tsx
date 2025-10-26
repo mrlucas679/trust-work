@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,6 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
 interface PaymentMethod {
   id: string;
   type: 'card' | 'bank' | 'wallet';
@@ -33,11 +32,11 @@ interface Transaction {
   amount: number;
   description: string;
   date: string;
-  status: 'completed' | 'pending' | 'failed';
+  status: 'completed' | 'pending' | 'disputed' | 'refunded';
   method: string;
 }
 
-const PaymentSystem = () => {
+const PaymentSystem = memo(() => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -367,6 +366,8 @@ const PaymentSystem = () => {
       </Card>
     </div>
   );
-};
+});
+
+PaymentSystem.displayName = 'PaymentSystem';
 
 export default PaymentSystem;

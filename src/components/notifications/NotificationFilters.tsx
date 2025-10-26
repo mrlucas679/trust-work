@@ -22,7 +22,7 @@ const NotificationFilters = ({ filter, unreadCount, onFilterChange }: Notificati
           key={key}
           variant={filter === key ? 'default' : 'outline'}
           size="sm"
-          onClick={() => onFilterChange(key as any)}
+          onClick={() => onFilterChange(key as NotificationFiltersProps['filter'])}
           className="animate-scale-in"
         >
           {label}

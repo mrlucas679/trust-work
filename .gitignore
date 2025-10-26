@@ -47,6 +47,9 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# GitHub Copilot
+.copilot/
+
 # IDE - JetBrains
 .idea/
 *.iml
@@ -114,3 +117,7 @@ bundle-stats.json
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github\instructions\snyk_rules.instructions.md
+
+# Documentation files (development notes, not for version control)
+/*.md
+!README.md

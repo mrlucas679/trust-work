@@ -15,6 +15,7 @@ import { SKILL_DISPLAY_NAMES, LEVEL_DISPLAY_NAMES, LEVEL_REQUIREMENTS, SkillCate
 import { getQuestionBank, getRandomQuestions } from '@/data/assignmentQuestions';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { MotivationalLoadingScreen } from '@/components/quiz/MotivationalLoadingScreen';
 import {
     Dialog,
     DialogContent,
@@ -35,6 +36,7 @@ const AssignmentQuiz = () => {
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [failedReason, setFailedReason] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const questionStartTimeRef = useRef<number>(Date.now());
     const isInProgressRef = useRef(false);
@@ -101,19 +103,32 @@ const AssignmentQuiz = () => {
             return;
         }
 
-        const questionBank = getQuestionBank(skill, level);
-        if (!questionBank) {
-            console.error('Question bank not found');
-            navigate('/assignments');
-            return;
-        }
+        // Simulate realistic loading time (1.5-3 seconds)
+        const loadingDelay = 1500 + Math.random() * 1500;
 
-        const requirements = LEVEL_REQUIREMENTS[level];
-        const selectedQuestions = getRandomQuestions(questionBank, requirements.totalQuestions);
-        setQuestions(selectedQuestions);
-        setAssignmentStarted(true);
-        isInProgressRef.current = true;
-        questionStartTimeRef.current = Date.now();
+        const loadQuestions = async () => {
+            setIsLoading(true);
+
+            // Simulate async loading
+            await new Promise(resolve => setTimeout(resolve, loadingDelay));
+
+            const questionBank = getQuestionBank(skill, level);
+            if (!questionBank) {
+                console.error('Question bank not found');
+                navigate('/assignments');
+                return;
+            }
+
+            const requirements = LEVEL_REQUIREMENTS[level];
+            const selectedQuestions = getRandomQuestions(questionBank, requirements.totalQuestions);
+            setQuestions(selectedQuestions);
+            setIsLoading(false);
+            setAssignmentStarted(true);
+            isInProgressRef.current = true;
+            questionStartTimeRef.current = Date.now();
+        };
+
+        loadQuestions();
     }, [skill, level, navigate]);
 
     // Timer countdown
@@ -236,11 +251,13 @@ const AssignmentQuiz = () => {
     const answeredCount = Object.keys(answers).length;
     const isTimeCritical = timeRemaining <= 300; // 5 minutes
 
-    if (questions.length === 0) {
+    // Show motivational loading screen
+    if (isLoading || questions.length === 0) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <p className="text-lg">Loading assignment...</p>
-            </div>
+            <MotivationalLoadingScreen
+                skillName={skill ? SKILL_DISPLAY_NAMES[skill] : undefined}
+                levelName={level ? LEVEL_DISPLAY_NAMES[level] : undefined}
+            />
         );
     }
 
@@ -320,8 +337,8 @@ const AssignmentQuiz = () => {
                                     <div
                                         key={index}
                                         className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer hover:bg-muted/50 ${answers[currentQuestionIndex] === optionValue
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-border'
+                                            ? 'border-primary bg-primary/5'
+                                            : 'border-border'
                                             }`}
                                     >
                                         <RadioGroupItem
@@ -384,10 +401,10 @@ const AssignmentQuiz = () => {
                                         setCurrentQuestionIndex(index);
                                     }}
                                     className={`w-10 h-10 rounded flex items-center justify-center text-sm font-medium transition-all ${index === currentQuestionIndex
-                                            ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
-                                            : answers[index]
-                                                ? 'bg-success text-success-foreground'
-                                                : 'bg-muted text-muted-foreground'
+                                        ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
+                                        : answers[index]
+                                            ? 'bg-success text-success-foreground'
+                                            : 'bg-muted text-muted-foreground'
                                         }`}
                                 >
                                     {index + 1}

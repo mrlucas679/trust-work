@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { getCLS, getFID, getLCP, getFCP, getTTFB } from 'web-vitals';
+import { getCLS, getFID, getLCP, getFCP, getTTFB, type Metric } from 'web-vitals';
 
-const sendToAnalytics = (metric: any) => {
+const sendToAnalytics = (metric: Metric) => {
     // Replace with your analytics service
     console.log(metric);
 };

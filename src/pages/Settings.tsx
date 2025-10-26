@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,18 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  User, Bell, Shield, Eye, Trash2, Upload, 
+import {
+  User, Bell, Shield, Eye, Trash2, Upload,
   Mail, Phone, MapPin, Edit, Save, X
 } from "lucide-react";
 import { mockJobSeeker } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { uploadCv } from "@/lib/storage";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { supabase, user } = useSupabase();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: mockJobSeeker.name,
@@ -26,6 +29,9 @@ const Settings = () => {
     location: mockJobSeeker.location || "Cape Town, South Africa",
     bio: "Experienced digital marketing professional with 5+ years in the industry.",
   });
+  const [cvUrl, setCvUrl] = useState<string | null>(null);
+  const [cvUploading, setCvUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [notifications, setNotifications] = useState({
     emailJobs: true,
@@ -61,9 +67,53 @@ const Settings = () => {
   const handlePrivacyChange = (key: string, value: boolean) => {
     setPrivacy(prev => ({ ...prev, [key]: value }));
     toast({
-      title: "Privacy Settings Updated", 
+      title: "Privacy Settings Updated",
       description: "Your privacy preferences have been saved.",
     });
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadCv() {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('cv_url')
+        .eq('id', user.id)
+        .single();
+      if (!mounted) return;
+      if (!error) setCvUrl(data?.cv_url ?? null);
+    }
+    loadCv();
+    return () => { mounted = false; };
+  }, [supabase, user]);
+
+  const onChooseFile = () => fileInputRef.current?.click();
+  const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to upload your CV.' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Please upload a file up to 10MB.' });
+      return;
+    }
+    try {
+      setCvUploading(true);
+      const { url } = await uploadCv(file, user.id);
+      const { error } = await supabase.from('profiles').upsert({ id: user.id, cv_url: url });
+      if (error) throw error;
+      setCvUrl(url);
+      toast({ title: 'CV uploaded', description: 'Your CV has been uploaded successfully.' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to upload CV';
+      toast({ title: 'Upload failed', description: msg });
+    } finally {
+      setCvUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -143,7 +193,7 @@ const Settings = () => {
                       <Input
                         id="name"
                         value={profile.name}
-                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                         disabled={!isEditing}
                       />
                     </div>
@@ -154,7 +204,7 @@ const Settings = () => {
                           id="email"
                           type="email"
                           value={profile.email}
-                          onChange={(e) => setProfile({...profile, email: e.target.value})}
+                          onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                           disabled={!isEditing}
                         />
                         <Badge variant="outline" className="border-verified text-verified">
@@ -171,7 +221,7 @@ const Settings = () => {
                         id="phone"
                         type="tel"
                         value={profile.phone}
-                        onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                         disabled={!isEditing}
                       />
                     </div>
@@ -180,7 +230,7 @@ const Settings = () => {
                       <Input
                         id="location"
                         value={profile.location}
-                        onChange={(e) => setProfile({...profile, location: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
                         disabled={!isEditing}
                       />
                     </div>
@@ -193,7 +243,7 @@ const Settings = () => {
                       className="w-full p-3 border rounded-md resize-none"
                       rows={3}
                       value={profile.bio}
-                      onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                       disabled={!isEditing}
                       placeholder="Tell employers about your experience and skills..."
                     />
@@ -216,6 +266,42 @@ const Settings = () => {
                       </Button>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CV Upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Curriculum Vitae (CV)
+                </CardTitle>
+                <CardDescription>
+                  Upload or replace your CV. Supported: PDF, DOC, DOCX. Max size 10MB.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  {cvUrl ? (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      CV uploaded.{' '}
+                      <a className="underline" href={cvUrl} target="_blank" rel="noreferrer">View</a>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mb-3">No CV uploaded yet.</p>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="hidden"
+                    onChange={onFileSelected}
+                  />
+                  <Button variant="outline" size="sm" onClick={onChooseFile} disabled={cvUploading}>
+                    {cvUploading ? 'Uploading…' : (cvUrl ? 'Replace CV' : 'Upload CV')}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

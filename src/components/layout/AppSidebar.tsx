@@ -11,11 +11,8 @@ import {
   Shield,
   LogOut,
   ClipboardList,
-  ChevronLeft,
-  ChevronRight
+  User
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -67,6 +64,11 @@ const mainItems = [{
  */
 const bottomItems = [
   {
+    title: "Profile",
+    url: "/profile",
+    icon: User
+  },
+  {
     title: "Safety Center",
     url: "/safety",
     icon: Shield
@@ -103,39 +105,14 @@ const bottomItems = [
  * - Support section with theme toggle and user actions
  * - Smooth animations and transitions
  */
-export function AppSidebar() {
-  const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+interface AppSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  // Subscribe to sidebar state changes
-  // Define custom event type
-  interface SidebarToggleEvent extends CustomEvent {
-    detail: {
-      open: boolean;
-    };
-  }
-
-  useEffect(() => {
-    const handleSidebarToggle = (event: SidebarToggleEvent) => {
-      setIsVisible(event.detail.open);
-    };
-
-    // Listen for sidebar toggle events
-    window.addEventListener('sidebartoggle', handleSidebarToggle as EventListener);
-    return () => window.removeEventListener('sidebartoggle', handleSidebarToggle as EventListener);
-  }, []);
-
+export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   return (
     <div className="relative">
-      {/* Backdrop overlay */}
-      {isVisible && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20"
-          onClick={() => setIsVisible(false)}
-        />
-      )}
-
       <Sidebar
         className={cn(
           // Base styles
@@ -144,28 +121,21 @@ export function AppSidebar() {
           "flex flex-col w-[280px]",
 
           // Positioning and z-index
-          "fixed top-16 z-30",
+          "fixed left-0 top-16 z-30",
 
-          // Mobile styles - slide from right
-          "right-0 md:right-auto md:left-0",
-          "translate-x-full md:translate-x-[-100%]",
+          // Smooth slide animation
+          "transition-transform duration-300 ease-in-out",
 
-          // Visibility states
-          "data-[state=open]:translate-x-0",
-          isVisible && "md:translate-x-0",
-
-          // Transitions and effects
-          "transition-all duration-300 ease-in-out",
-          "opacity-0 data-[state=open]:opacity-100",
-          isVisible && "md:opacity-100",
+          // Transform based on isOpen state
+          isOpen ? "translate-x-0" : "translate-x-[-100%]",
 
           // Shadow and depth
           "shadow-lg",
 
           // Group styling for hover effects
           "group"
-        )}>
-      )}>
+        )}
+      >
         {/* Branded header - visible only on mobile */}
         {/* Logo and name - only visible on mobile */}
         <div className="md:hidden h-16 flex items-center px-4 border-b">
@@ -174,27 +144,10 @@ export function AppSidebar() {
             <span className="text-xl font-bold">TrustWork</span>
           </div>
         </div>
-        {/* Toggle button for large screens */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className={cn(
-            "p-2 rounded-lg hover:bg-accent",
-            "transition-colors duration-200",
-            "hidden 2xl:flex items-center justify-center",
-            "absolute -right-4 top-4", // Moved up since we removed the header space
-            "bg-background shadow-md border",
-            "z-50"
-          )}
-        >
-          {isExpanded ? (
-            <ChevronLeft className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </button>
+
         <SidebarContent className={cn(
-          "flex-1 overflow-y-auto",
-          "scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent" // Subtle scrollbar
+          "flex-1 overflow-y-auto"
+          // Chrome's native scrollbar used - removed custom scrollbar styling
         )}>
           <SidebarGroup className="pt-2">
             <SidebarGroupContent>
@@ -206,6 +159,7 @@ export function AppSidebar() {
                     title={item.title}
                     to={item.url}
                     badge={item.badge}
+                    onClick={onClose}
                   />
                 ))}
               </SidebarMenu>
@@ -214,8 +168,7 @@ export function AppSidebar() {
 
           <SidebarGroup className="mt-6">
             <SidebarGroupLabel className={cn(
-              "px-4 mb-2 text-xs uppercase tracking-wider text-muted-foreground/70",
-              "2xl:opacity-0 2xl:group-hover:opacity-100 transition-opacity duration-300" // Hide on large screens unless expanded
+              "px-4 mb-2 text-xs uppercase tracking-wider text-muted-foreground/70"
             )}>
               Support
             </SidebarGroupLabel>
@@ -227,6 +180,7 @@ export function AppSidebar() {
                     icon={item.icon}
                     title={item.title}
                     to={item.url}
+                    onClick={onClose}
                   />
                 ))}
               </SidebarMenu>
@@ -234,5 +188,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-      );
+    </div>
+  );
 }

@@ -72,7 +72,7 @@ export const GigCardSkeleton = () => (
 export const LoadingSpinner = ({ size = "default" }: { size?: "sm" | "default" | "lg" }) => {
   const sizeClass = {
     sm: "h-4 w-4",
-    default: "h-6 w-6", 
+    default: "h-6 w-6",
     lg: "h-8 w-8"
   }[size];
 
@@ -88,11 +88,10 @@ export const PageLoading = ({ message = "Loading..." }: { message?: string }) =>
 );
 
 // Button Loading State
-export const ButtonLoading = ({ children, isLoading, ...props }: { 
-  children: React.ReactNode; 
+export const ButtonLoading = ({ children, isLoading, ...props }: {
+  children: React.ReactNode;
   isLoading: boolean;
-  [key: string]: any;
-}) => (
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button disabled={isLoading} {...props}>
     {isLoading ? (
       <div className="flex items-center gap-2">

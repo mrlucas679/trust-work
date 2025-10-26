@@ -35,6 +35,7 @@ const navigationItemVariants = cva(
  * @property {string} to - The route path to navigate to
  * @property {string | number} [badge] - Optional badge content to display
  * @property {boolean} [customComponent] - Whether to render as a custom component (used for theme toggle)
+ * @property {() => void} [onClick] - Optional click handler
  */
 interface NavigationItemProps
     extends Omit<React.HTMLAttributes<HTMLAnchorElement>, 'children'>,
@@ -44,6 +45,7 @@ interface NavigationItemProps
     to: string;
     badge?: string | number;
     customComponent?: boolean;
+    onClick?: () => void;
 }
 
 export function NavigationItem({
@@ -53,6 +55,7 @@ export function NavigationItem({
     to,
     badge,
     customComponent,
+    onClick,
     ...props
 }: NavigationItemProps) {
     const content = (
@@ -87,6 +90,7 @@ export function NavigationItem({
     ) : (
         <NavLink
             to={to}
+            onClick={onClick}
             className={({ isActive }) => cn(
                 navigationItemVariants({
                     variant: isActive ? "active" : "default",
