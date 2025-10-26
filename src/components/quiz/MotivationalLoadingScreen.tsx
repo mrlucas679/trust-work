@@ -81,11 +81,11 @@ export const MotivationalLoadingScreen = ({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
-            <Card className="max-w-2xl w-full border-primary/20 shadow-2xl">
+            <Card className="max-w-2xl w-full border-primary/20 shadow-2xl" role="article">
                 <CardContent className="p-12 space-y-8">
                     {/* Header */}
                     <div className="text-center space-y-2">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4 animate-pulse">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4 animate-pulse" data-testid="loading-spinner">
                             <Loader2 className="h-10 w-10 text-primary animate-spin" />
                         </div>
                         <h2 className="text-2xl font-bold text-foreground">
