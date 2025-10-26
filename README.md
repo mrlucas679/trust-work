@@ -75,7 +75,13 @@ A modern freelance platform built with React, TypeScript, and Supabase that prio
    - Copy and paste the contents of `supabase/schema.sql`
    - Run the script to create tables and policies
 
-5. **Start the development server**
+5. **Set up storage bucket for CV uploads**
+
+   - Follow the guide in `supabase/STORAGE_SETUP_GUIDE.md` to create the `resumes` bucket
+   - Quick method: In Supabase Dashboard > Storage > Create bucket > Name: "resumes" > Public: ON
+   - Or run `supabase/storage-setup.sql` in the SQL Editor
+
+6. **Start the development server**
 
    ```bash
    npm run dev

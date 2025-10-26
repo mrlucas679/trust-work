@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   User, Bell, Shield, Eye, Trash2, Upload,
-  Mail, Phone, MapPin, Edit, Save, X
+  Mail, Phone, MapPin, Edit, Save, X, FileText
 } from "lucide-react";
 import { mockJobSeeker } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
