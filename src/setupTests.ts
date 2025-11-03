@@ -1,5 +1,6 @@
 // Add custom jest matchers for testing-library
 import '@testing-library/jest-dom';
+import './test/setup-a11y';
 
 // Mock import.meta for Vite env variables
 const importMeta = {
@@ -20,7 +21,7 @@ Object.defineProperty(globalThis, 'import', {
 });
 
 // Also mock for any direct import.meta access
-(globalThis as any).importMeta = importMeta;
+(globalThis as typeof globalThis & { importMeta: typeof importMeta }).importMeta = importMeta;
 
 // Mock Supabase client
 jest.mock('@supabase/supabase-js', () => ({

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ResetPassword from '../ResetPassword';
 import { useSupabase } from '@/providers/SupabaseProvider';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock the Supabase provider
 jest.mock('@/providers/SupabaseProvider');
@@ -13,7 +14,7 @@ const mockSupabase = {
         getSession: mockGetSession,
         updateUser: mockUpdateUser,
     },
-};
+} as unknown as SupabaseClient;
 
 const mockUseSupabase = useSupabase as jest.MockedFunction<typeof useSupabase>;
 
@@ -29,7 +30,7 @@ describe('ResetPassword', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseSupabase.mockReturnValue({
-            supabase: mockSupabase as any,
+            supabase: mockSupabase,
             session: null,
             user: null,
             loading: false,

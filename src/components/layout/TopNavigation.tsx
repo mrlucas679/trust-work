@@ -27,16 +27,17 @@ export const TopNavigation = ({ className, onMenuClick }: TopNavigationProps) =>
 
   return <header
     className={cn(
-      "fixed top-0 left-0 right-0 z-50",
+      "fixed top-0 left-0 right-0",
       "w-full h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 print:hidden",
       className
     )}
+    style={{ zIndex: 'var(--z-navbar)' }}
     role="banner"
     aria-label="Main navigation"
   >
-    <div className="container mx-auto flex h-16 items-center justify-between gap-3 lg:gap-4 px-4">
+    <div className="flex h-16 items-center justify-between gap-2 sm:gap-3 lg:gap-4 px-4 max-w-full">
       {/* Left Section - Menu Button and Logo */}
-      <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0 min-w-0">
         {/* Menu Toggle Button - Enhanced for touch devices */}
         <Button
           variant="ghost"
@@ -53,17 +54,17 @@ export const TopNavigation = ({ className, onMenuClick }: TopNavigationProps) =>
         {/* Logo - Clickable */}
         <Button
           variant="ghost"
-          className="flex items-center gap-2 p-2 flex-shrink-0"
+          className="flex items-center gap-2 p-2 flex-shrink-0 min-w-0"
           onClick={handleHomeClick}
           aria-label="Go to home page"
         >
-          <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
-          <span className="text-xl font-bold hidden sm:block">TrustWork</span>
+          <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" aria-hidden="true" />
+          <span className="text-lg sm:text-xl font-bold hidden sm:inline-block truncate">TrustWork</span>
         </Button>
       </div>
 
-      {/* Center Section - Search Bar (takes available space) */}
-      <div className="flex-1 max-w-xl lg:max-w-2xl mx-2 lg:mx-4" role="search">
+      {/* Center Section - Search Bar (takes available space but can shrink) */}
+      <div className="flex-1 min-w-0 max-w-xl lg:max-w-2xl mx-2 sm:mx-3 lg:mx-4" role="search">
         <InlineSearch />
       </div>
 

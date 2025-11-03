@@ -40,9 +40,9 @@ const Messages = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Messages</h1>
             <p className="text-muted-foreground">Communicate safely with verified employers</p>

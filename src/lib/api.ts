@@ -171,5 +171,24 @@ export class ApiClient {
  * Create an API client instance
  */
 export const api = new ApiClient({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+    baseUrl: (() => {
+        // Check for test environment
+        if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
+            return 'http://localhost:3000';
+        }
+
+        // Check for Vite environment (browser)
+        if (typeof globalThis !== 'undefined') {
+            const globalWithImport = globalThis as typeof globalThis & {
+                import?: { meta?: { env?: { VITE_API_URL?: string } } }
+            };
+            const viteApiUrl = globalWithImport.import?.meta?.env?.VITE_API_URL;
+            if (viteApiUrl) {
+                return viteApiUrl;
+            }
+        }
+
+        // Default fallback
+        return 'http://localhost:3000';
+    })(),
 });

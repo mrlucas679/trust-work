@@ -54,10 +54,12 @@ export interface JobSeekerProfile extends User {
 }
 
 export interface EmployerProfile extends User {
+  company?: string; // Alias for companyName (for backward compatibility)
   companyName: string;
   registrationNumber: string;
   website: string;
   logo?: string;
+  rating?: number;
   verificationStatus: 'pending' | 'verified' | 'flagged';
   riskFlags: string[];
 }
@@ -247,6 +249,7 @@ export const mockJobSeeker: JobSeekerProfile = {
   email: 'sarah@email.com',
   role: 'job_seeker',
   verified: true,
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
   skills: ['React', 'TypeScript', 'Node.js', 'Digital Marketing'],
   completedJobs: 12,
   rating: 4.8,
@@ -281,6 +284,8 @@ export const mockEmployer: EmployerProfile = {
   email: 'john@techcorp.com',
   role: 'employer',
   verified: true,
+  rating: 4.9,
+  company: 'TechCorp Solutions', // Added for test compatibility
   companyName: 'TechCorp Solutions',
   registrationNumber: 'REG123456789',
   website: 'https://techcorp.co.za',
@@ -380,5 +385,71 @@ export const mockAssessments: Assessment[] = [
         correctAnswer: 0
       }
     ]
+  }
+];
+
+// Mock Reviews Data
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  author: string;
+  date: string;
+}
+
+export const mockReviews: Review[] = [
+  {
+    id: '1',
+    rating: 5,
+    comment: 'Excellent work, highly professional and delivered on time!',
+    author: 'John Smith',
+    date: '2024-01-15'
+  },
+  {
+    id: '2',
+    rating: 4,
+    comment: 'Great communication and quality work.',
+    author: 'Sarah Johnson',
+    date: '2024-01-10'
+  },
+  {
+    id: '3',
+    rating: 5,
+    comment: 'Outstanding results, exceeded expectations!',
+    author: 'Mike Brown',
+    date: '2024-01-05'
+  }
+];
+
+// Mock Certifications Data
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  type: 'skill' | 'education' | 'professional';
+}
+
+export const mockCertifications: Certification[] = [
+  {
+    id: '1',
+    name: 'React Developer Certification',
+    issuer: 'Meta',
+    date: '2023-12-01',
+    type: 'skill'
+  },
+  {
+    id: '2',
+    name: 'Bachelor of Computer Science',
+    issuer: 'University of Cape Town',
+    date: '2022-06-15',
+    type: 'education'
+  },
+  {
+    id: '3',
+    name: 'Certified Digital Marketing Professional',
+    issuer: 'Digital Marketing Institute',
+    date: '2023-09-20',
+    type: 'professional'
   }
 ];

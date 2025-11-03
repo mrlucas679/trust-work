@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ForgotPassword from '../ForgotPassword';
 import { useSupabase } from '@/providers/SupabaseProvider';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock the Supabase provider
 jest.mock('@/providers/SupabaseProvider');
@@ -11,7 +12,7 @@ const mockSupabase = {
     auth: {
         resetPasswordForEmail: mockResetPasswordForEmail,
     },
-};
+} as unknown as SupabaseClient;
 
 const mockUseSupabase = useSupabase as jest.MockedFunction<typeof useSupabase>;
 
@@ -27,7 +28,7 @@ describe('ForgotPassword', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseSupabase.mockReturnValue({
-            supabase: mockSupabase as any,
+            supabase: mockSupabase,
             session: null,
             user: null,
             loading: false,
@@ -155,7 +156,7 @@ describe('ForgotPassword', () => {
 
         it('shows generic error message on API error (security)', async () => {
             mockResetPasswordForEmail.mockResolvedValue({
-                error: { message: 'User not found' } as any,
+                error: { message: 'User not found' } as { message: string },
             });
             renderComponent();
 
@@ -291,7 +292,7 @@ describe('ForgotPassword', () => {
 
         it('clears error when resubmitting', async () => {
             mockResetPasswordForEmail.mockResolvedValueOnce({
-                error: { message: 'Rate limit exceeded' } as any,
+                error: { message: 'Rate limit exceeded' } as { message: string },
             });
             renderComponent();
 

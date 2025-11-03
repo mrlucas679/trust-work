@@ -29,7 +29,7 @@ const Chat = () => {
     },
     {
       id: 2,
-      sender: "employer", 
+      sender: "employer",
       content: "I've reviewed your portfolio and I'm impressed with your React skills. Would you be available for a quick call this week?",
       timestamp: "10:32 AM",
       date: "Today"
@@ -45,7 +45,7 @@ const Chat = () => {
       id: 4,
       sender: "employer",
       content: "Great! How about Thursday at 3 PM? We can do a video call to discuss the role and your experience.",
-      timestamp: "2:45 PM", 
+      timestamp: "2:45 PM",
       date: "Today"
     }
   ];
@@ -58,8 +58,8 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-6">
         {/* Header */}
         <Card className="mb-6">
           <CardHeader>
@@ -85,7 +85,7 @@ const Chat = () => {
                   <p className="text-sm text-muted-foreground">{chatData.jobTitle}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button variant="outline" size="sm">
                   <AlertTriangle className="h-4 w-4 mr-2" />
@@ -106,16 +106,14 @@ const Chat = () => {
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      msg.sender === 'user'
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-foreground'
-                    }`}
+                      }`}
                   >
                     <p className="text-sm">{msg.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      msg.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                    }`}>
+                    <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                      }`}>
                       {msg.timestamp}
                     </p>
                   </div>

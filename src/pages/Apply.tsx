@@ -21,8 +21,8 @@ const Apply = () => {
   if (!job) return <div>Job not found</div>;
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
@@ -42,8 +42,8 @@ const Apply = () => {
 
             <div className="space-y-2">
               <Label htmlFor="message">Cover Message</Label>
-              <Textarea 
-                id="message" 
+              <Textarea
+                id="message"
                 placeholder="Tell the employer why you're perfect for this role..."
                 rows={4}
               />

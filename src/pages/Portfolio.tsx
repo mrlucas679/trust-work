@@ -9,10 +9,10 @@ const Portfolio = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">My Portfolio</h1>
             <p className="text-muted-foreground">Showcase your best work and achievements</p>
@@ -81,7 +81,7 @@ const Portfolio = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{project.description}</p>
-                  
+
                   <div className="flex items-center text-sm text-muted-foreground mb-4">
                     <Calendar className="h-4 w-4 mr-1" />
                     Completed on {new Date(project.completedDate).toLocaleDateString()}
@@ -122,8 +122,8 @@ const Portfolio = () => {
                     </div>
                   ))}
                 </div>
-                <Button 
-                  className="w-full mt-4" 
+                <Button
+                  className="w-full mt-4"
                   variant="outline"
                   onClick={() => navigate('/assessments')}
                 >

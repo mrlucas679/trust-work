@@ -1,0 +1,5 @@
+{
+    "docwriter.style": "Auto-detect",
+    "github.copilot.chat.mcp.enabled": true,
+    "github.copilot.chat.mcp.configFile": "${workspaceFolder}/.mcp.json"
+}

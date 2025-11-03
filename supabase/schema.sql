@@ -11,8 +11,43 @@ create table if not exists public.profiles (
     role text check (
         role in ('job_seeker', 'employer')
     ) not null default 'job_seeker',
+    phone text,
     -- Public URL to the user's uploaded CV/resume in Supabase Storage
     cv_url text,
+    
+    -- Job Seeker: Personal Information
+    city text,
+    province text,
+    location text,
+    
+    -- Job Seeker: Professional Profile
+    experience_level text,
+    employment_status text,
+    current_job_title text,
+    industry text,
+    years_experience text,
+    
+    -- Job Seeker: Education
+    highest_qualification text,
+    institution text,
+    field_of_study text,
+    year_completed text,
+    
+    -- Job Seeker: Skills & Languages
+    skills text[], -- Array of skills
+    languages text[], -- Array of languages
+    
+    -- Job Seeker: Job Preferences
+    desired_role text,
+    desired_industry text,
+    desired_location text,
+    job_type_preference text,
+    salary_expectation text,
+    availability text,
+    
+    -- Onboarding status
+    onboarding_completed boolean not null default false,
+    
     -- Business verification fields (for employers)
     business_name text,
     business_verified boolean not null default false,

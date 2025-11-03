@@ -1,0 +1,97 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download, X } from 'lucide-react';
+
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+/**
+ * PWA Install Prompt
+ * Shows a native-like prompt to install the Progressive Web App
+ * Only appears when the app is installable and hasn't been dismissed
+ */
+export function PWAInstallPrompt() {
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [showPrompt, setShowPrompt] = useState(false);
+
+    useEffect(() => {
+        // Check if prompt was previously dismissed
+        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        if (dismissed === 'true') {
+            return;
+        }
+
+        const handler = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
+            setShowPrompt(true);
+        };
+
+        window.addEventListener('beforeinstallprompt', handler);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handler);
+        };
+    }, []);
+
+    const handleInstall = async () => {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+        }
+
+        setDeferredPrompt(null);
+        setShowPrompt(false);
+    };
+
+    const handleDismiss = () => {
+        localStorage.setItem('pwa-install-dismissed', 'true');
+        setShowPrompt(false);
+    };
+
+    if (!showPrompt) return null;
+
+    return (
+        <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-in slide-in-from-bottom-5">
+            <Card className="shadow-lg border-primary/20">
+                <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                            <Download className="h-5 w-5 text-primary" />
+                            <CardTitle className="text-base">Install TrustWork</CardTitle>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 -mr-2 -mt-1"
+                            onClick={handleDismiss}
+                            aria-label="Dismiss install prompt"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <CardDescription className="text-sm">
+                        Install TrustWork for quick access and offline support
+                    </CardDescription>
+                    <div className="flex gap-2">
+                        <Button onClick={handleInstall} className="flex-1" size="sm">
+                            Install
+                        </Button>
+                        <Button onClick={handleDismiss} variant="outline" size="sm">
+                            Not now
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}

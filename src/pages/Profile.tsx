@@ -62,192 +62,190 @@ const Profile = () => {
   }, [supabase, userId, authUser?.id]);
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Profile Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="text-2xl font-semibold">
-                  {user.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <Card>
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback className="text-2xl font-semibold">
+                {user.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold">{user.name}</h1>
-                  <VerificationBadge
-                    type={user.verified ? "verified" : "pending"}
-                    details={user.verified ? ["Identity verified", "Skills assessed", "Background checked"] : ["Verification in progress"]}
-                  />
-                  <RiskIndicator level="low" reasons={["Verified identity", "Good reviews", "Consistent work history"]} />
+            <div className="flex-1 w-full min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <h1 className="text-2xl sm:text-3xl font-bold">{user.name}</h1>
+                <VerificationBadge
+                  type={user.verified ? "verified" : "pending"}
+                  details={user.verified ? ["Identity verified", "Skills assessed", "Background checked"] : ["Verification in progress"]}
+                />
+                <RiskIndicator level="low" reasons={["Verified identity", "Good reviews", "Consistent work history"]} />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-1">
+                  <Mail className="h-4 w-4" />
+                  <span className="truncate">{user.email}</span>
                 </div>
-
-                <div className="flex items-center gap-4 text-muted-foreground mb-4">
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-1" />
-                    {user.email}
-                  </div>
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    Cape Town, South Africa
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Joined January 2024
-                  </div>
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>Cape Town, South Africa</span>
                 </div>
-
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center">
-                    <Star className="h-5 w-5 text-warning mr-2" />
-                    <span className="font-semibold text-lg">{user.rating}</span>
-                    <span className="text-muted-foreground ml-1">({user.completedJobs} reviews)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Briefcase className="h-5 w-5 text-primary mr-2" />
-                    <span className="font-semibold">{user.completedJobs}</span>
-                    <span className="text-muted-foreground ml-1">completed jobs</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 mt-2">
-                  {isOwnProfile && (
-                    <Button onClick={() => navigate('/profile/edit')}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  )}
-                  <Button variant="outline" disabled={!safeCvUrl} asChild>
-                    {/* If no CV available, keep disabled; when available, link opens in new tab */}
-                    <a href={safeCvUrl ?? undefined} target={safeCvUrl ? "_blank" : undefined} rel={safeCvUrl ? "noreferrer" : undefined}>
-                      View CV
-                    </a>
-                  </Button>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Joined January 2024</span>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* About */}
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Experienced full-stack developer and digital marketing specialist with a passion for creating
-                  innovative solutions. I help businesses grow through technology and strategic marketing campaigns.
-                  With {user.completedJobs} successfully completed projects, I bring reliability and quality to every task.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Recent Portfolio Work */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Recent Work</CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/portfolio')}>
-                    View All
-                  </Button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-warning" />
+                  <span className="font-semibold text-lg">{user.rating}</span>
+                  <span className="text-sm text-muted-foreground">({user.completedJobs} reviews)</span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {user.portfolio.slice(0, 2).map((project) => (
-                  <div key={project.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold">{project.title}</h3>
-                        <p className="text-sm text-muted-foreground">{project.client}</p>
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-warning mr-1" />
-                        <span className="font-medium">{project.rating}</span>
-                      </div>
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">{user.completedJobs}</span>
+                  <span className="text-sm text-muted-foreground">completed jobs</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                {isOwnProfile && (
+                  <Button onClick={() => navigate('/profile/edit')} className="w-full sm:w-auto">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+                <Button variant="outline" disabled={!safeCvUrl} asChild className="w-full sm:w-auto">
+                  {/* If no CV available, keep disabled; when available, link opens in new tab */}
+                  <a href={safeCvUrl ?? undefined} target={safeCvUrl ? "_blank" : undefined} rel={safeCvUrl ? "noreferrer" : undefined}>
+                    View CV
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* About */}
+          <Card>
+            <CardHeader>
+              <CardTitle>About</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                Experienced full-stack developer and digital marketing specialist with a passion for creating
+                innovative solutions. I help businesses grow through technology and strategic marketing campaigns.
+                With {user.completedJobs} successfully completed projects, I bring reliability and quality to every task.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Recent Portfolio Work */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Work</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => navigate('/portfolio')}>
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {user.portfolio.slice(0, 2).map((project) => (
+                <div key={project.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold">{project.title}</h3>
+                      <p className="text-sm text-muted-foreground">{project.client}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {project.skills.slice(0, 3).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Star className="h-4 w-4 text-warning" />
+                      <span className="font-medium">{project.rating}</span>
                     </div>
                   </div>
+                  <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.skills.slice(0, 3).map((skill) => (
+                      <Badge key={skill} variant="secondary" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Certifications */}
+          <CertificationDisplay isOwnProfile={isOwnProfile} />
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Skills */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Skills
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {user.skills.map((skill) => (
+                  <Badge key={skill} variant="outline" className="border-verified text-verified">
+                    {skill}
+                  </Badge>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Certifications */}
-            <CertificationDisplay isOwnProfile={isOwnProfile} />
-          </div>
+          {/* Achievement Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Achievements</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Completion Rate</span>
+                <span className="font-semibold">100%</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">On-Time Delivery</span>
+                <span className="font-semibold">98%</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Response Time</span>
+                <span className="font-semibold">&lt; 2 hours</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Repeat Clients</span>
+                <span className="font-semibold">75%</span>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Skills */}
+          {/* Contact Actions */}
+          {!isOwnProfile && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="h-5 w-5 mr-2" />
-                  Skills
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {user.skills.map((skill) => (
-                    <Badge key={skill} variant="outline" className="border-verified text-verified">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
+              <CardContent className="p-4 space-y-3">
+                <Button className="w-full h-11">Send Message</Button>
+                <Button variant="outline" className="w-full h-11">Invite to Job</Button>
               </CardContent>
             </Card>
-
-            {/* Achievement Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Completion Rate</span>
-                  <span className="font-semibold">100%</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">On-Time Delivery</span>
-                  <span className="font-semibold">98%</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Response Time</span>
-                  <span className="font-semibold">&lt; 2 hours</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Repeat Clients</span>
-                  <span className="font-semibold">75%</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Contact Actions */}
-            {!isOwnProfile && (
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <Button className="w-full">Send Message</Button>
-                  <Button variant="outline" className="w-full">Invite to Job</Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>

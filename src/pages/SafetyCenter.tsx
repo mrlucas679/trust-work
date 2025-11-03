@@ -73,8 +73,8 @@ const SafetyCenter = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+      <div className="space-y-8">
+        <div>
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}

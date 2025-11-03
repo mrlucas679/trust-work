@@ -1,0 +1,7 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - heading "Not Found" [level=1] [ref=e2]
+  - paragraph [ref=e3]: The requested URL was not found on this server.
+```

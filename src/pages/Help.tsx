@@ -100,14 +100,14 @@ const Help = () => {
   );
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <div className="mb-8 text-center">
+    <div className="space-y-8">
+      <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Help & Support</h1>
         <p className="text-muted-foreground">Get help, stay safe, and learn how to make the most of TrustWork</p>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card className="text-center">
           <CardContent className="p-6">
             <Shield className="h-8 w-8 text-verified mx-auto mb-3" />

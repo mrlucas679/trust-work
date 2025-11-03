@@ -1,6 +1,7 @@
 /**
  * Icons used throughout the sidebar
  */
+import * as React from "react";
 import {
   Briefcase,
   Home,
@@ -19,7 +20,8 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenu
+  SidebarMenu,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { NavigationItem } from "./sidebar/NavigationItem";
 import { ThemeToggle } from "./sidebar/ThemeToggle";
@@ -104,90 +106,73 @@ const bottomItems = [
  * - Main navigation menu with notification badges
  * - Support section with theme toggle and user actions
  * - Smooth animations and transitions
+ * 
+ * Uses the useSidebar hook for all state management to avoid synchronization issues.
  */
-interface AppSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+export function AppSidebar() {
+  const { setOpenMobile } = useSidebar();
 
-export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
+  // Close sidebar on navigation (mobile only)
+  const handleNavigationClick = React.useCallback(() => {
+    setOpenMobile(false);
+  }, [setOpenMobile]);
+
   return (
-    <div className="relative">
-      <Sidebar
-        className={cn(
-          // Base styles
-          "border-r h-[calc(100vh-4rem)]",
-          "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-          "flex flex-col w-[280px]",
-
-          // Positioning and z-index
-          "fixed left-0 top-16 z-30",
-
-          // Smooth slide animation
-          "transition-transform duration-300 ease-in-out",
-
-          // Transform based on isOpen state
-          isOpen ? "translate-x-0" : "translate-x-[-100%]",
-
-          // Shadow and depth
-          "shadow-lg",
-
-          // Group styling for hover effects
-          "group"
-        )}
-      >
-        {/* Branded header - visible only on mobile */}
-        {/* Logo and name - only visible on mobile */}
-        <div className="md:hidden h-16 flex items-center px-4 border-b">
-          <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">TrustWork</span>
-          </div>
+    <Sidebar
+      collapsible="offcanvas"
+      className="sidebar-with-navbar"
+    >
+      {/* Branded header - visible only on mobile */}
+      {/* Logo and name - only visible on mobile */}
+      <div className="md:hidden h-16 flex items-center px-4 border-b">
+        <div className="flex items-center gap-2">
+          <Shield className="h-8 w-8 text-primary" />
+          <span className="text-xl font-bold">TrustWork</span>
         </div>
+      </div>
 
-        <SidebarContent className={cn(
-          "flex-1 overflow-y-auto"
-          // Chrome's native scrollbar used - removed custom scrollbar styling
-        )}>
-          <SidebarGroup className="pt-2">
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1.5 px-3">
-                {mainItems.map(item => (
-                  <NavigationItem
-                    key={item.title}
-                    icon={item.icon}
-                    title={item.title}
-                    to={item.url}
-                    badge={item.badge}
-                    onClick={onClose}
-                  />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+      <SidebarContent className={cn(
+        "flex-1 overflow-y-auto"
+        // Chrome's native scrollbar used - removed custom scrollbar styling
+      )}>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1.5 px-3">
+              {mainItems.map(item => (
+                <NavigationItem
+                  key={item.title}
+                  icon={item.icon}
+                  title={item.title}
+                  to={item.url}
+                  badge={item.badge}
+                  onClick={handleNavigationClick}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          <SidebarGroup className="mt-6">
-            <SidebarGroupLabel className={cn(
-              "px-4 mb-2 text-xs uppercase tracking-wider text-muted-foreground/70"
-            )}>
-              Support
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1.5 px-3">
-                {bottomItems.map(item => (
-                  <NavigationItem
-                    key={item.title}
-                    icon={item.icon}
-                    title={item.title}
-                    to={item.url}
-                    onClick={onClose}
-                  />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </div>
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className={cn(
+            "px-4 mb-2 text-xs uppercase tracking-wider text-muted-foreground/70"
+          )}>
+            Support
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1.5 px-3">
+              {bottomItems.map(item => (
+                <NavigationItem
+                  key={item.title}
+                  icon={item.icon}
+                  title={item.title}
+                  to={item.url}
+                  onClick={handleNavigationClick}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 }

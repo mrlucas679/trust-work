@@ -1,0 +1,44 @@
+{
+    "mcpServers": {
+        "playwright": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@playwright/test"
+            ],
+            "description": "Playwright E2E testing automation - already installed in project"
+        },
+        "filesystem": {
+            "command": "node",
+            "args": [
+                "mcp-servers/filesystem-server.js",
+                "c:\\Users\\Tekashi\\Documents\\my interview\\trust-work"
+            ],
+            "description": "Local filesystem operations",
+            "disabled": true,
+            "note": "Custom implementation needed - see mcp-servers directory"
+        },
+        "supabase": {
+            "command": "node",
+            "args": [
+                "mcp-servers/supabase-server.js"
+            ],
+            "env": {
+                "SUPABASE_URL": "${VITE_SUPABASE_URL}",
+                "SUPABASE_KEY": "${VITE_SUPABASE_ANON_KEY}"
+            },
+            "description": "Supabase database and auth integration",
+            "disabled": true,
+            "note": "Custom implementation needed - see mcp-servers directory"
+        },
+        "git": {
+            "command": "git",
+            "args": [
+                "--version"
+            ],
+            "description": "Git version control - use native git commands",
+            "disabled": true,
+            "note": "Use terminal git commands directly instead"
+        }
+    }
+}

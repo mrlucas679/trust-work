@@ -12,8 +12,15 @@ describe('Separator', () => {
         expect(screen.getByTestId('separator')).toBeInTheDocument();
     });
 
-    it('should have role separator', () => {
+    it('should have role none when decorative (default)', () => {
         render(<Separator data-testid="separator" />);
+
+        const separator = screen.getByTestId('separator');
+        expect(separator).toHaveAttribute('role', 'none');
+    });
+
+    it('should have role separator when not decorative', () => {
+        render(<Separator decorative={false} data-testid="separator" />);
 
         const separator = screen.getByTestId('separator');
         expect(separator).toHaveAttribute('role', 'separator');
@@ -46,7 +53,8 @@ describe('Separator', () => {
         render(<Separator data-testid="separator" />);
 
         const separator = screen.getByTestId('separator');
-        expect(separator).toHaveAttribute('aria-hidden', 'true');
+        // When decorative=true (default), Radix UI sets role="none"
+        expect(separator).toHaveAttribute('role', 'none');
     });
 
     it('should not be decorative when decorative is false', () => {

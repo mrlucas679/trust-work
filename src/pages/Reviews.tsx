@@ -86,11 +86,10 @@ const Reviews = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`h-4 w-4 ${
-              star <= rating 
-                ? 'fill-yellow-400 text-yellow-400' 
-                : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
+            className={`h-4 w-4 ${star <= rating
+              ? 'fill-yellow-400 text-yellow-400'
+              : 'text-gray-300'
+              } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
             onClick={() => interactive && onRate && onRate(star)}
           />
         ))}
@@ -116,9 +115,9 @@ const Reviews = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+    <div className="bg-background">
+      <div className="space-y-8">
+        <div>
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
@@ -174,7 +173,7 @@ const Reviews = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Rating</label>
-                  {renderStars(newReview.rating, true, (rating) => 
+                  {renderStars(newReview.rating, true, (rating) =>
                     setNewReview({ ...newReview, rating })
                   )}
                 </div>
@@ -192,9 +191,9 @@ const Reviews = () => {
 
                 <div className="flex gap-2">
                   <Button type="submit">Submit Review</Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => setShowReviewForm(false)}
                   >
                     Cancel
@@ -244,7 +243,7 @@ const Reviews = () => {
                       {review.reviewer.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold">{review.reviewer.name}</h3>
@@ -257,7 +256,7 @@ const Reviews = () => {
                         reviewed {review.reviewee.name}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mb-2">
                       {renderStars(review.rating)}
                       <span className="text-sm text-muted-foreground">
@@ -267,11 +266,11 @@ const Reviews = () => {
                         • {new Date(review.date).toLocaleDateString()}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm mb-4 text-muted-foreground">
                       {review.comment}
                     </p>
-                    
+
                     <div className="flex items-center gap-4">
                       <Button variant="ghost" size="sm">
                         <ThumbsUp className="h-4 w-4 mr-1" />
