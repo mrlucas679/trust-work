@@ -2,8 +2,23 @@ import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
+/**
+ * useIsMobile Hook
+ * 
+ * Detects if the current viewport is mobile-sized (< 768px).
+ * Uses matchMedia for efficient monitoring and debouncing for stability.
+ * 
+ * Features:
+ * - Server-side rendering compatible
+ * - Debounced resize handling (150ms)
+ * - Proper cleanup of event listeners
+ * - Error resilient with defensive checks
+ * 
+ * @returns {boolean} True if viewport width is less than MOBILE_BREAKPOINT
+ */
 export function useIsMobile() {
   // Initialize with actual value instead of undefined to prevent layout shifts
+  // Defensive: Check if window is available (SSR compatibility)
   const [isMobile, setIsMobile] = React.useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth < MOBILE_BREAKPOINT
@@ -12,23 +27,43 @@ export function useIsMobile() {
   })
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    let timeoutId: NodeJS.Timeout | undefined
+    // Defensive: Exit early if window is not available
+    if (typeof window === 'undefined') return
 
-    const onChange = () => {
-      // Debounce to prevent rapid state changes during resize
-      clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => {
-        setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-      }, 150) // 150ms debounce - balances responsiveness and stability
-    }
+    try {
+      const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+      let timeoutId: NodeJS.Timeout | undefined
 
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      const onChange = () => {
+        try {
+          // Debounce to prevent rapid state changes during resize
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => {
+            if (typeof window !== 'undefined') {
+              setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+            }
+          }, 150) // 150ms debounce - balances responsiveness and stability
+        } catch (error) {
+          console.error('useIsMobile: Error in resize handler', error)
+        }
+      }
 
-    return () => {
-      clearTimeout(timeoutId)
-      mql.removeEventListener("change", onChange)
+      mql.addEventListener("change", onChange)
+      // Set initial value after mounting
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+
+      return () => {
+        try {
+          clearTimeout(timeoutId)
+          mql.removeEventListener("change", onChange)
+        } catch (error) {
+          console.error('useIsMobile: Error cleaning up listeners', error)
+        }
+      }
+    } catch (error) {
+      console.error('useIsMobile: Error setting up media query listener', error)
+      // Fallback: return the initial state if setup fails
+      return
     }
   }, [])
 

@@ -36,6 +36,15 @@ type SidebarContext = {
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
 
+/**
+ * useSidebar Hook
+ * 
+ * Provides access to sidebar state and controls.
+ * Must be used within a SidebarProvider component.
+ * 
+ * @throws {Error} When used outside of SidebarProvider
+ * @returns {SidebarContext} Sidebar context with state and control functions
+ */
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
@@ -74,40 +83,64 @@ const SidebarProvider = React.forwardRef<
     const open = openProp ?? _open
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === "function" ? value(open) : value
-        if (setOpenProp) {
-          setOpenProp(openState)
-        } else {
-          _setOpen(openState)
-        }
+        try {
+          const openState = typeof value === "function" ? value(open) : value
+          if (setOpenProp) {
+            setOpenProp(openState)
+          } else {
+            _setOpen(openState)
+          }
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+          // This sets the cookie to keep the sidebar state.
+          // Defensive: wrap in try-catch in case document.cookie is not available
+          if (typeof document !== 'undefined' && document.cookie !== undefined) {
+            document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+          }
+        } catch (error) {
+          console.error('Sidebar: Error updating state or cookie', error)
+        }
       },
       [setOpenProp, open]
     )
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+      try {
+        return isMobile
+          ? setOpenMobile((open) => !open)
+          : setOpen((open) => !open)
+      } catch (error) {
+        console.error('Sidebar: Error toggling sidebar', error)
+      }
     }, [isMobile, setOpen, setOpenMobile])
 
     // Adds a keyboard shortcut to toggle the sidebar.
+    // Defensive: Only add listener if window is available
     React.useEffect(() => {
+      if (typeof window === 'undefined') return
+
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (
-          event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
-        ) {
-          event.preventDefault()
-          toggleSidebar()
+        try {
+          if (
+            event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+            (event.metaKey || event.ctrlKey)
+          ) {
+            event.preventDefault()
+            toggleSidebar()
+          }
+        } catch (error) {
+          console.error('Sidebar: Error handling keyboard shortcut', error)
         }
       }
 
       window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
+      return () => {
+        try {
+          window.removeEventListener("keydown", handleKeyDown)
+        } catch (error) {
+          console.error('Sidebar: Error removing keyboard listener', error)
+        }
+      }
     }, [toggleSidebar])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
