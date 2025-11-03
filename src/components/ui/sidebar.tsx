@@ -92,10 +92,7 @@ const SidebarProvider = React.forwardRef<
           }
 
           // This sets the cookie to keep the sidebar state.
-          // Defensive: wrap in try-catch in case document.cookie is not available
-          if (typeof document !== 'undefined') {
-            document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
-          }
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
         } catch (error) {
           console.error('Sidebar: Error updating state or cookie', error)
         }

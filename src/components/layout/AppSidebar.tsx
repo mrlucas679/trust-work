@@ -162,10 +162,14 @@ export function AppSidebar() {
         <SidebarGroup className="pt-2">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1.5 px-3" role="navigation" aria-label="Primary navigation">
-              {/* Defensive: Filter out invalid items and map with error boundary */}
+              {/* Defensive: Filter out invalid items to handle potential runtime issues
+                  While items are static, this protects against future refactoring or
+                  dynamic item loading scenarios */}
               {mainItems
                 .filter(item => item && item.title && item.url && item.icon)
                 .map(item => {
+                  // Defensive: Try-catch per item ensures one bad item doesn't break all navigation
+                  // Provides isolation beyond error boundary for better user experience
                   try {
                     return (
                       <NavigationItem
@@ -194,10 +198,14 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1.5 px-3" role="navigation" aria-label="Support navigation">
-              {/* Defensive: Filter out invalid items and map with error boundary */}
+              {/* Defensive: Filter out invalid items to handle potential runtime issues
+                  While items are static, this protects against future refactoring or
+                  dynamic item loading scenarios */}
               {bottomItems
                 .filter(item => item && item.title && item.url && item.icon)
                 .map(item => {
+                  // Defensive: Try-catch per item ensures one bad item doesn't break all navigation
+                  // Provides isolation beyond error boundary for better user experience
                   try {
                     return (
                       <NavigationItem

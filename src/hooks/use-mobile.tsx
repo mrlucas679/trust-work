@@ -42,9 +42,7 @@ export function useIsMobile() {
           // Debounce to prevent rapid state changes during resize
           clearTimeout(timeoutId)
           timeoutId = setTimeout(() => {
-            if (typeof window !== 'undefined') {
-              setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-            }
+            setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
           }, 150) // 150ms debounce - balances responsiveness and stability
         } catch (error) {
           console.error('useIsMobile: Error in resize handler', error)
