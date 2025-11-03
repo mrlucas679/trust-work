@@ -43,10 +43,8 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
 
         return () => {
             try {
-                if (document.body && document.documentElement) {
-                    document.body.classList.remove('sidebar-open');
-                    document.documentElement.style.removeProperty('--scrollbar-width');
-                }
+                document.body.classList.remove('sidebar-open');
+                document.documentElement.style.removeProperty('--scrollbar-width');
             } catch (error) {
                 console.error('DashboardLayout: Error cleaning up body scroll lock', error);
             }

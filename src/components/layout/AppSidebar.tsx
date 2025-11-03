@@ -134,9 +134,7 @@ export function AppSidebar() {
   // Memoized to prevent unnecessary re-renders
   const handleNavigationClick = React.useCallback(() => {
     try {
-      if (typeof setOpenMobile === 'function') {
-        setOpenMobile(false);
-      }
+      setOpenMobile(false);
     } catch (error) {
       console.error('AppSidebar: Error closing sidebar', error);
     }

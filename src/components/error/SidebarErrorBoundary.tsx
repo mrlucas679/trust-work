@@ -72,11 +72,6 @@ export class SidebarErrorBoundary extends Component<Props, State> {
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // In production, you might want to send this to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Example: logErrorToService(error, errorInfo);
-    }
   }
 
   handleReset = () => {

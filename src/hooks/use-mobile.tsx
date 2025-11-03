@@ -28,7 +28,10 @@ export function useIsMobile() {
 
   React.useEffect(() => {
     // Defensive: Exit early if window is not available
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') {
+      // Return no-op cleanup function
+      return () => {}
+    }
 
     try {
       const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
@@ -62,8 +65,8 @@ export function useIsMobile() {
       }
     } catch (error) {
       console.error('useIsMobile: Error setting up media query listener', error)
-      // Fallback: return the initial state if setup fails
-      return
+      // Return cleanup function even on error
+      return () => {}
     }
   }, [])
 
