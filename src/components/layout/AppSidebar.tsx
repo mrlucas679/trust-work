@@ -127,17 +127,8 @@ const bottomItems: NavigationItemType[] = [
  * @throws {Error} When useSidebar context is not available - should be wrapped in SidebarProvider
  */
 export function AppSidebar() {
-  // Defensive: Use try-catch to handle potential context issues
-  let sidebarContext;
-  try {
-    sidebarContext = useSidebar();
-  } catch (error) {
-    console.error('AppSidebar: useSidebar hook failed - must be wrapped in SidebarProvider', error);
-    // Return minimal fallback if context is not available
-    return null;
-  }
-
-  const { setOpenMobile } = sidebarContext;
+  // Must call hooks unconditionally at the top level
+  const { setOpenMobile } = useSidebar();
 
   // Close sidebar on navigation (mobile only)
   // Memoized to prevent unnecessary re-renders
