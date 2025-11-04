@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { TopNavigation } from "./TopNavigation";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import { SidebarErrorBoundary } from "@/components/error/SidebarErrorBoundary";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -22,19 +23,31 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
     };
 
     // Prevent body scroll when sidebar is open on mobile
+    // Defensive: Wrapped in try-catch and checks for DOM availability
     useEffect(() => {
-        if (isMobile && openMobile) {
-            // Calculate scrollbar width to prevent layout shift
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-            document.body.classList.add('sidebar-open');
-        } else {
-            document.body.classList.remove('sidebar-open');
-            document.documentElement.style.removeProperty('--scrollbar-width');
+        if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+        try {
+            if (isMobile && openMobile) {
+                // Calculate scrollbar width to prevent layout shift
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+                document.body.classList.add('sidebar-open');
+            } else {
+                document.body.classList.remove('sidebar-open');
+                document.documentElement.style.removeProperty('--scrollbar-width');
+            }
+        } catch (error) {
+            console.error('DashboardLayout: Error managing body scroll lock', error);
         }
+
         return () => {
-            document.body.classList.remove('sidebar-open');
-            document.documentElement.style.removeProperty('--scrollbar-width');
+            try {
+                document.body.classList.remove('sidebar-open');
+                document.documentElement.style.removeProperty('--scrollbar-width');
+            } catch (error) {
+                console.error('DashboardLayout: Error cleaning up body scroll lock', error);
+            }
         };
     }, [isMobile, openMobile]);
 
@@ -63,7 +76,10 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
             )}
 
             {/* Smooth Sliding Sidebar - positioned below navbar */}
-            <AppSidebar />
+            {/* Wrapped in Error Boundary to prevent sidebar errors from crashing the app */}
+            <SidebarErrorBoundary>
+                <AppSidebar />
+            </SidebarErrorBoundary>
 
             {/* Main Content Area - ONLY scroll container */}
             {/* Positioned below navbar, takes remaining height, scrolls independently */}
