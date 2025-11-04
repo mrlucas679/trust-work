@@ -264,7 +264,7 @@ const MatchingEngine = memo(() => {
             Improve Your Matches
           </h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Complete skills assessments to boost match accuracy</li>
+            <li>• Complete skill tests to boost match accuracy</li>
             <li>• Keep your profile updated with latest experience</li>
             <li>• Add portfolio items to showcase your work</li>
             <li>• Set location and salary preferences</li>

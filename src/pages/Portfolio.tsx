@@ -116,7 +116,7 @@ const Portfolio = () => {
                       <Badge variant="outline" className="border-verified text-verified">
                         {skill}
                       </Badge>
-                      <Button variant="ghost" size="sm" onClick={() => navigate('/assessments')}>
+                      <Button variant="ghost" size="sm" onClick={() => navigate('/skill-tests')}>
                         Upgrade
                       </Button>
                     </div>
@@ -125,9 +125,9 @@ const Portfolio = () => {
                 <Button
                   className="w-full mt-4"
                   variant="outline"
-                  onClick={() => navigate('/assessments')}
+                  onClick={() => navigate('/skill-tests')}
                 >
-                  Take More Assessments
+                  Take More Tests
                 </Button>
               </CardContent>
             </Card>

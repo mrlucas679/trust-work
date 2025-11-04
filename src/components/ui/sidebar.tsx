@@ -82,7 +82,10 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        // Security: Added Secure and SameSite attributes for cookie security
+        const isSecure = window.location.protocol === 'https:';
+        const cookieString = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
+        document.cookie = cookieString;
       },
       [setOpenProp, open]
     )
@@ -97,18 +100,25 @@ const SidebarProvider = React.forwardRef<
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
+        // Ctrl+Shift+B / Cmd+Shift+B to toggle (avoids browser bookmark shortcut)
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+          event.shiftKey &&
           (event.metaKey || event.ctrlKey)
         ) {
           event.preventDefault()
           toggleSidebar()
         }
+        // Escape to close mobile sidebar
+        if (event.key === 'Escape' && isMobile && openMobile) {
+          event.preventDefault()
+          setOpenMobile(false)
+        }
       }
 
       window.addEventListener("keydown", handleKeyDown)
       return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
+    }, [toggleSidebar, isMobile, openMobile, setOpenMobile])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.

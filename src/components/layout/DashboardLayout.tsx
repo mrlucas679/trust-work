@@ -3,15 +3,13 @@ import { TopNavigation } from "./TopNavigation";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardLayoutProps {
     children: ReactNode;
 }
 
 function DashboardLayoutContent({ children }: DashboardLayoutProps) {
-    const { openMobile, setOpenMobile, isMobile: sidebarIsMobile } = useSidebar();
-    const isMobile = useIsMobile();
+    const { openMobile, setOpenMobile, isMobile } = useSidebar();
 
     const toggleSidebar = () => {
         setOpenMobile(!openMobile);

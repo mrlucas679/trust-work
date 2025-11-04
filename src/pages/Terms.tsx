@@ -51,7 +51,7 @@ const Terms = () => {
                     <li>Job listing and application services</li>
                     <li>Employer verification and background checks</li>
                     <li>Gig marketplace for freelance work</li>
-                    <li>Portfolio and skill assessment tools</li>
+                    <li>Portfolio and skill test tools</li>
                     <li>Secure messaging and communication features</li>
                     <li>Payment processing for gig work</li>
                     <li>Safety and fraud prevention measures</li>

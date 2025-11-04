@@ -29,12 +29,13 @@ const EmployerDashboard = lazy(() => import("./pages/dashboard/EmployerDashboard
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobDetail = lazy(() => import("./pages/JobDetail"));
 const Apply = lazy(() => import("./pages/Apply"));
+const FindFreelancers = lazy(() => import("./pages/FindFreelancers"));
 const Gigs = lazy(() => import("./pages/Gigs"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Profile = lazy(() => import("./pages/Profile"));
-const Assessments = lazy(() => import("./pages/Assessments"));
-const AssessmentTake = lazy(() => import("./pages/AssessmentTake"));
-const AssessmentResults = lazy(() => import("./pages/AssessmentResults"));
+const ApplicationSkillTest = lazy(() => import("./pages/ApplicationSkillTest"));
+const Applications = lazy(() => import("./pages/Applications"));
+const AssignmentApplications = lazy(() => import("./pages/AssignmentApplications"));
 const AssignmentDashboard = lazy(() => import("./pages/AssignmentDashboard"));
 const AssignmentWarning = lazy(() => import("./pages/AssignmentWarning"));
 const AssignmentQuiz = lazy(() => import("./pages/AssignmentQuiz"));
@@ -42,6 +43,8 @@ const AssignmentResultsPage = lazy(() => import("./pages/AssignmentResults"));
 const AssignmentDetailedResults = lazy(() => import("./pages/AssignmentDetailedResults"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Chat = lazy(() => import("./pages/Chat"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 const ApplicationTracking = lazy(() => import("./pages/ApplicationTracking"));
 const SafetyCenter = lazy(() => import("./pages/SafetyCenter"));
 const Reviews = lazy(() => import("./pages/Reviews"));
@@ -119,13 +122,12 @@ const App = () => (
                 <Route path="/jobs" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Jobs /></Suspense></AppLayout>} />
                 <Route path="/job/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><JobDetail /></Suspense></AppLayout>} />
                 <Route path="/apply/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Apply /></Suspense></AppLayout>} />
+                <Route path="/find-freelancers" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><FindFreelancers /></Suspense></AppLayout>} />
+                <Route path="/apply/:id/skill-test" element={<Suspense fallback={<PageLoadingSpinner />}><ApplicationSkillTest /></Suspense>} />
                 <Route path="/gigs" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Gigs /></Suspense></AppLayout>} />
                 <Route path="/portfolio" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Portfolio /></Suspense></AppLayout>} />
                 <Route path="/profile" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Profile /></Suspense></AppLayout>} />
                 <Route path="/profile/:userId" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Profile /></Suspense></AppLayout>} />
-                <Route path="/assessments" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Assessments /></Suspense></AppLayout>} />
-                <Route path="/assessment/:assessmentId" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentTake /></Suspense></AppLayout>} />
-                <Route path="/assessment/:assessmentId/results" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssessmentResults /></Suspense></AppLayout>} />
                 <Route path="/assignments" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssignmentDashboard /></Suspense></AppLayout>} />
                 <Route path="/assignments/:skill/:level/warning" element={<Suspense fallback={<PageLoadingSpinner />}><AssignmentWarning /></Suspense>} />
                 <Route path="/assignments/:skill/:level/take" element={<Suspense fallback={<PageLoadingSpinner />}><AssignmentQuiz /></Suspense>} />
@@ -133,7 +135,11 @@ const App = () => (
                 <Route path="/assignments/:skill/:level/detailed-results" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssignmentDetailedResults /></Suspense></AppLayout>} />
                 <Route path="/messages" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Messages /></Suspense></AppLayout>} />
                 <Route path="/chat/:id" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Chat /></Suspense></AppLayout>} />
-                <Route path="/applications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><ApplicationTracking /></Suspense></AppLayout>} />
+                <Route path="/notifications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Notifications /></Suspense></AppLayout>} />
+                <Route path="/analytics" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Analytics /></Suspense></AppLayout>} />
+                {/* SECURITY: Application routes with RLS protection */}
+                <Route path="/applications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Applications /></Suspense></AppLayout>} />
+                <Route path="/assignments/:assignmentId/applications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AssignmentApplications /></Suspense></AppLayout>} />
                 <Route path="/safety" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><SafetyCenter /></Suspense></AppLayout>} />
                 <Route path="/reviews" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><Reviews /></Suspense></AppLayout>} />
                 <Route path="/post-job" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><PostJob /></Suspense></AppLayout>} />

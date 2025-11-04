@@ -188,8 +188,8 @@ const JobSeekerDashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Skill Development</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => navigate('/assessments')}>
-                Take Assessment
+              <Button variant="outline" size="sm" onClick={() => navigate('/skill-tests')}>
+                Take Skill Test
               </Button>
             </div>
           </CardHeader>

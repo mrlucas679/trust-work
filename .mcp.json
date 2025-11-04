@@ -19,17 +19,17 @@
             "note": "Custom implementation needed - see mcp-servers directory"
         },
         "supabase": {
-            "command": "node",
+            "command": "npx",
             "args": [
-                "mcp-servers/supabase-server.js"
+                "-y",
+                "@modelcontextprotocol/server-supabase"
             ],
             "env": {
-                "SUPABASE_URL": "${VITE_SUPABASE_URL}",
-                "SUPABASE_KEY": "${VITE_SUPABASE_ANON_KEY}"
+                "SUPABASE_URL": "https://sojjizqahgphybdijqaj.supabase.co",
+                "SUPABASE_ANON_KEY": "${VITE_SUPABASE_ANON_KEY}"
             },
-            "description": "Supabase database and auth integration",
-            "disabled": true,
-            "note": "Custom implementation needed - see mcp-servers directory"
+            "description": "Supabase database and auth integration via official MCP server",
+            "disabled": false
         },
         "git": {
             "command": "git",

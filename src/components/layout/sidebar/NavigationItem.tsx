@@ -102,20 +102,15 @@ export function NavigationItem({
             {({ isActive }) => (
                 <>
                     <Icon className={cn(
-                        "h-5 w-5 transition-transform group-hover:scale-105",
-                        "mr-0 2xl:group-hover:mr-3 md:mr-3 2xl:mr-0", // Responsive margins
+                        "h-5 w-5 mr-3 transition-transform group-hover:scale-105",
                         isActive && "text-primary"
                     )} />
-                    <span className={cn(
-                        "flex-1 truncate transition-opacity duration-200 ml-3",
-                        "opacity-100 2xl:opacity-0 2xl:group-hover:opacity-100" // Always show text except on 2xl screens when not hovered
-                    )}>{title}</span>
+                    <span className="flex-1 truncate">{title}</span>
                     {badge && (
                         <Badge
                             variant="secondary"
                             className={cn(
-                                "ml-auto h-5 px-2 text-xs transition-opacity duration-200",
-                                "opacity-100 2xl:opacity-0 2xl:group-hover:opacity-100", // Always show badge except on 2xl screens when not hovered
+                                "ml-auto h-5 px-2 text-xs",
                                 isActive && "bg-primary/20 text-primary"
                             )}
                         >

@@ -55,7 +55,7 @@ const Index = () => {
                 Verified Jobs, Gigs & Talent
               </h2>
               <p className="text-xl text-muted-foreground mb-6">
-                Where every opportunity is verified and every talent is proven through assessments
+                Where every opportunity is verified and every talent is proven through skill tests
               </p>
 
               {/* Action buttons removed */}
@@ -83,7 +83,7 @@ const Index = () => {
               <div className="space-y-4">
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   We've built a secure ecosystem where trust comes first. Every job and gig is thoroughly verified,
-                  and talent proves their skills through comprehensive assessments. With protected payments, professional
+                  and talent proves their skills through comprehensive skill tests. With protected payments, professional
                   portfolios, and a complete tracking system, you can focus on what matters most - finding the perfect
                   match for your needs. Experience a workspace where quality meets security.
                 </p>

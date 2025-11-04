@@ -31,7 +31,16 @@ jest.mock('@/components/ui/sidebar', () => ({
         <main data-testid="sidebar-inset" className={className} id={id} onClick={onClick}>
             {children}
         </main>
-    )
+    ),
+    useSidebar: jest.fn(() => ({
+        openMobile: false,
+        setOpenMobile: jest.fn(),
+        isMobile: false,
+        open: true,
+        setOpen: jest.fn(),
+        state: 'expanded' as const,
+        toggleSidebar: jest.fn()
+    }))
 }));
 
 jest.mock('@/hooks/use-mobile', () => ({
@@ -39,7 +48,10 @@ jest.mock('@/hooks/use-mobile', () => ({
 }));
 
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSidebar } from '@/components/ui/sidebar';
+
 const mockUseIsMobile = useIsMobile as jest.MockedFunction<typeof useIsMobile>;
+const mockUseSidebar = useSidebar as jest.MockedFunction<typeof useSidebar>;
 
 const renderWithRouter = (ui: React.ReactElement) => {
     return render(<BrowserRouter>{ui}</BrowserRouter>);
@@ -47,12 +59,22 @@ const renderWithRouter = (ui: React.ReactElement) => {
 
 describe('DashboardLayout', () => {
     beforeEach(() => {
-        mockUseIsMobile.mockReturnValue(false);
+        mockUseSidebar.mockReturnValue({
+            openMobile: false,
+            setOpenMobile: jest.fn(),
+            isMobile: false,
+            open: true,
+            setOpen: jest.fn(),
+            state: 'expanded' as const,
+            toggleSidebar: jest.fn()
+        });
         document.body.style.overflow = '';
+        document.body.classList.remove('sidebar-open');
     });
 
     afterEach(() => {
         document.body.style.overflow = '';
+        document.body.classList.remove('sidebar-open');
     });
 
     it('should render children correctly', () => {
@@ -140,7 +162,16 @@ describe('DashboardLayout', () => {
     });
 
     it('should render mobile overlay when sidebar is open on mobile', () => {
-        mockUseIsMobile.mockReturnValue(true);
+        const mockSetOpenMobile = jest.fn();
+        mockUseSidebar.mockReturnValue({
+            openMobile: true,
+            setOpenMobile: mockSetOpenMobile,
+            isMobile: true,
+            open: true,
+            setOpen: jest.fn(),
+            state: 'expanded' as const,
+            toggleSidebar: jest.fn()
+        });
 
         const { container } = renderWithRouter(
             <DashboardLayout>
@@ -148,18 +179,21 @@ describe('DashboardLayout', () => {
             </DashboardLayout>
         );
 
-        const menuButton = screen.getByTestId('menu-button');
-
-        // Open sidebar
-        fireEvent.click(menuButton);
-
         // Check for overlay
         const overlay = container.querySelector('.fixed.inset-0.bg-black\\/50');
         expect(overlay).toBeInTheDocument();
     });
 
     it('should not render overlay when sidebar is closed on mobile', () => {
-        mockUseIsMobile.mockReturnValue(true);
+        mockUseSidebar.mockReturnValue({
+            openMobile: false,
+            setOpenMobile: jest.fn(),
+            isMobile: true,
+            open: true,
+            setOpen: jest.fn(),
+            state: 'expanded' as const,
+            toggleSidebar: jest.fn()
+        });
 
         const { container } = renderWithRouter(
             <DashboardLayout>

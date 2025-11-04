@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 import {
   Plus,
   X,
@@ -17,10 +18,12 @@ import {
   Users,
   CheckCircle,
   AlertTriangle,
-  Eye
+  Eye,
+  GraduationCap
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import type { SkillCategory } from "@/types/skillTest";
 
 interface JobForm {
   title: string;
@@ -37,6 +40,14 @@ interface JobForm {
   urgent: boolean;
   experienceLevel: string;
   department: string;
+  requireSkillTest: boolean;
+  skillTestConfig?: {
+    enabled: boolean;
+    requiredSkills: SkillCategory[];
+    questionCount: number;
+    durationMinutes: number;
+    passingScore: number;
+  };
 }
 
 const PostJob = () => {
@@ -61,8 +72,18 @@ const PostJob = () => {
     remote: false,
     urgent: false,
     experienceLevel: "",
-    department: ""
+    department: "",
+    requireSkillTest: false
   });
+
+  const availableSkills: SkillCategory[] = [
+    'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python',
+    'Java', 'C#', 'PHP', 'Ruby', 'Go',
+    'HTML', 'CSS', 'Tailwind', 'Bootstrap', 'REST API',
+    'Figma', 'Adobe XD', 'Photoshop', 'UI/UX Design',
+    'SEO', 'Social Media Marketing', 'Content Marketing', 'Google Analytics',
+    'Project Management', 'Excel', 'Data Analysis', 'Customer Service'
+  ];
 
   const updateField = <K extends keyof JobForm>(field: K, value: JobForm[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -90,6 +111,54 @@ const PostJob = () => {
     updateField('benefits', formData.benefits.filter((_, i) => i !== index));
   };
 
+  const toggleSkillTest = (enabled: boolean) => {
+    updateField('requireSkillTest', enabled);
+    if (enabled && !formData.skillTestConfig) {
+      updateField('skillTestConfig', {
+        enabled: true,
+        requiredSkills: [],
+        questionCount: 15,
+        durationMinutes: 22,
+        passingScore: 70
+      });
+    } else if (!enabled) {
+      updateField('skillTestConfig', undefined);
+    }
+  };
+
+  const toggleTestSkill = (skill: SkillCategory) => {
+    if (!formData.skillTestConfig) return;
+
+    const skills = formData.skillTestConfig.requiredSkills;
+    const updated = skills.includes(skill)
+      ? skills.filter(s => s !== skill)
+      : [...skills, skill];
+
+    updateField('skillTestConfig', {
+      ...formData.skillTestConfig,
+      requiredSkills: updated
+    });
+  };
+
+  const updateQuestionCount = (count: number) => {
+    if (!formData.skillTestConfig) return;
+
+    updateField('skillTestConfig', {
+      ...formData.skillTestConfig,
+      questionCount: count,
+      durationMinutes: Math.round(count * 1.5) // Auto-calculate duration
+    });
+  };
+
+  const updatePassingScore = (score: number) => {
+    if (!formData.skillTestConfig) return;
+
+    updateField('skillTestConfig', {
+      ...formData.skillTestConfig,
+      passingScore: score
+    });
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
@@ -104,12 +173,28 @@ const PostJob = () => {
       return;
     }
 
+    // Validate skill test configuration if enabled
+    if (formData.requireSkillTest && formData.skillTestConfig) {
+      if (formData.skillTestConfig.requiredSkills.length === 0) {
+        toast({
+          title: "Skill Test Configuration Incomplete",
+          description: "Please select at least one skill to test.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        setActiveTab("requirements");
+        return;
+      }
+    }
+
     // Simulate job posting
     setTimeout(() => {
       setIsSubmitting(false);
       toast({
         title: "Job Posted Successfully!",
-        description: "Your job posting is now live and will be reviewed within 24 hours.",
+        description: formData.requireSkillTest
+          ? "Your job posting with skill test is now live and will be reviewed within 24 hours."
+          : "Your job posting is now live and will be reviewed within 24 hours.",
       });
       navigate('/dashboard/employer');
     }, 2000);
@@ -385,6 +470,134 @@ const PostJob = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Skill Test Configuration */}
+            <Card className="animate-fade-in border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <GraduationCap className="h-5 w-5 mr-2 text-primary" />
+                  Skill Test Configuration (Optional)
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Require applicants to pass a skill test before their application is reviewed</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="requireSkillTest"
+                    checked={formData.requireSkillTest}
+                    onCheckedChange={toggleSkillTest}
+                  />
+                  <label htmlFor="requireSkillTest" className="text-sm font-medium">
+                    Require skill test for this position
+                  </label>
+                </div>
+
+                {formData.requireSkillTest && formData.skillTestConfig && (
+                  <div className="space-y-6 pl-6 border-l-2 border-primary/30 animate-fade-in">
+                    {/* Skills Selection */}
+                    <div>
+                      <label className="text-sm font-medium mb-3 block">
+                        Select Skills to Test <span className="text-destructive">*</span>
+                      </label>
+                      <p className="text-xs text-muted-foreground mb-3">Choose skills that are critical for this role</p>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-3 bg-muted/20 rounded-lg">
+                        {availableSkills.map((skill) => (
+                          <div key={skill} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`skill-${skill}`}
+                              checked={formData.skillTestConfig?.requiredSkills.includes(skill)}
+                              onCheckedChange={() => toggleTestSkill(skill)}
+                            />
+                            <label htmlFor={`skill-${skill}`} className="text-xs cursor-pointer">
+                              {skill}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+
+                      {formData.skillTestConfig.requiredSkills.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground mb-2">Selected skills ({formData.skillTestConfig.requiredSkills.length}):</p>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.skillTestConfig.requiredSkills.map((skill) => (
+                              <Badge key={skill} variant="default" className="text-xs">
+                                {skill}
+                                <X
+                                  className="h-3 w-3 ml-1 cursor-pointer hover:bg-destructive/20 rounded-full"
+                                  onClick={() => toggleTestSkill(skill)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Question Count */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Number of Questions</label>
+                      <Select
+                        value={formData.skillTestConfig.questionCount.toString()}
+                        onValueChange={(value) => updateQuestionCount(parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 questions</SelectItem>
+                          <SelectItem value="15">15 questions</SelectItem>
+                          <SelectItem value="20">20 questions</SelectItem>
+                          <SelectItem value="25">25 questions</SelectItem>
+                          <SelectItem value="30">30 questions</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Test Duration: {formData.skillTestConfig.durationMinutes} minutes (auto-calculated: 1.5 min/question)
+                      </p>
+                    </div>
+
+                    {/* Passing Score */}
+                    <div>
+                      <label className="text-sm font-medium mb-3 block">
+                        Passing Score: {formData.skillTestConfig.passingScore}%
+                      </label>
+                      <Slider
+                        value={[formData.skillTestConfig.passingScore]}
+                        onValueChange={([value]) => updatePassingScore(value)}
+                        min={60}
+                        max={80}
+                        step={5}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>60% (Easier)</span>
+                        <span>80% (Harder)</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Applicants must score at least {formData.skillTestConfig.passingScore}% to proceed with their application
+                      </p>
+                    </div>
+
+                    {/* Test Info */}
+                    <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+                      <h4 className="text-sm font-semibold mb-2 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-2 text-primary" />
+                        Test Configuration Summary
+                      </h4>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>• Questions: {formData.skillTestConfig.questionCount} randomly selected</li>
+                        <li>• Duration: {formData.skillTestConfig.durationMinutes} minutes</li>
+                        <li>• Skills tested: {formData.skillTestConfig.requiredSkills.length || 0} selected</li>
+                        <li>• Pass score: {formData.skillTestConfig.passingScore}%</li>
+                        <li>• Anti-cheat: Tab switching detection (3 strikes = auto-fail)</li>
+                        <li>• Failed applicants cannot retake the test for this job</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="preview" className="space-y-6">
@@ -467,6 +680,21 @@ const PostJob = () => {
                       </div>
                     </div>
                   )}
+
+                  {formData.requireSkillTest && formData.skillTestConfig && formData.skillTestConfig.requiredSkills.length > 0 && (
+                    <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                      <h4 className="font-semibold mb-2 flex items-center text-primary">
+                        <GraduationCap className="h-4 w-4 mr-2" />
+                        Skill Test Required
+                      </h4>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>• Applicants must pass a {formData.skillTestConfig.questionCount}-question test ({formData.skillTestConfig.durationMinutes} minutes)</p>
+                        <p>• Pass score: {formData.skillTestConfig.passingScore}%</p>
+                        <p>• Skills tested: {formData.skillTestConfig.requiredSkills.join(', ')}</p>
+                        <p className="text-primary font-medium mt-2">⚠️ Only applicants who pass the test will have their application reviewed</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Post Job Actions */}
@@ -475,6 +703,9 @@ const PostJob = () => {
                     <p>• Job will be reviewed within 24 hours</p>
                     <p>• Verified employers get priority visibility</p>
                     <p>• You'll receive notifications for applications</p>
+                    {formData.requireSkillTest && (
+                      <p className="text-primary">• Skill test will filter unqualified applicants automatically</p>
+                    )}
                   </div>
 
                   <Button

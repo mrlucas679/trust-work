@@ -7,18 +7,6 @@ export default {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     },
-    // Mock import.meta for Vite compatibility
-    globals: {
-        'import.meta': {
-            env: {
-                DEV: false,
-                PROD: true,
-                MODE: 'test',
-                VITE_SUPABASE_URL: 'https://test.supabase.co',
-                VITE_SUPABASE_ANON_KEY: 'test-key'
-            }
-        }
-    },
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', {
             tsconfig: {

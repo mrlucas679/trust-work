@@ -192,13 +192,13 @@ All colors MUST be HSL.
 /* Fix sidebar positioning below navbar */
 @layer components {
 
-  /* The spacer div that creates layout space for desktop sidebar */
-  .sidebar-with-navbar~div[data-sidebar="sidebar"]+div {
+  /* Target the spacer div - first child of sidebar container with our marker class */
+  .sidebar-with-navbar.group.peer>div:first-child {
     @apply md:h-[calc(100vh-4rem)] md:mt-16;
   }
 
-  /* The actual fixed sidebar positioned below navbar */
-  .sidebar-with-navbar~div[data-sidebar="sidebar"] {
+  /* Target the fixed sidebar - second child of sidebar container with our marker class */
+  .sidebar-with-navbar.group.peer>div:nth-child(2) {
     @apply md:top-16 md:h-[calc(100vh-4rem)];
   }
 }

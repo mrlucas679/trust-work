@@ -2,6 +2,31 @@
 
 Follow these steps to get the database and policies in place and the app connected.
 
+## 📋 Quick Links
+
+- **🚀 Quick Deployment** (5 min): [`QUICK_DEPLOY.md`](./QUICK_DEPLOY.md)
+- **📖 Comprehensive Guide**: [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md)
+- **✅ Deployment Checklist**: [`DEPLOYMENT_CHECKLIST.md`](./DEPLOYMENT_CHECKLIST.md)
+- **📦 Migration Summary**: [`../MIGRATION_DEPLOYMENT_SUMMARY.md`](../MIGRATION_DEPLOYMENT_SUMMARY.md)
+
+## ⚠️ IMPORTANT: Migration 000 Required
+
+**NEW**: We've added `migrations/000_base_assignments.sql` which creates the core `assignments` table. This MUST be run before any other migrations.
+
+**Migration Order**:
+
+1. Base `schema.sql` (profiles, notifications) ← You've already done this
+2. **`000_base_assignments.sql`** ← 🔴 START HERE for migrations
+3. `001_search_and_discovery.sql`
+4. `002_messaging_and_communication.sql`
+5. `003_notifications_system.sql`
+6. `004_analytics_system.sql`
+7. `005_search_system.sql`
+8. `006_application_system.sql`
+9. `007_assignment_workflow.sql` ← ⭐ NEW - Status tracking & reviews
+
+---
+
 ## 1) Create a Supabase project
 
 - Go to <https://supabase.com/> and create a new project.
@@ -37,6 +62,7 @@ Follow these steps to get the database and policies in place and the app connect
 ### Detailed Instructions
 
 For comprehensive setup instructions and troubleshooting, see:
+
 - **`supabase/STORAGE_SETUP_GUIDE.md`** - Complete guide with screenshots and troubleshooting
 
 Notes:

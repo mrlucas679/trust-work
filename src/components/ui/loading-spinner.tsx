@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface LoadingSpinnerProps {
     className?: string;
@@ -26,8 +27,30 @@ export const LoadingSpinner = ({ className, size = "md" }: LoadingSpinnerProps) 
     );
 };
 
-export const PageLoadingSpinner = () => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoadingSpinner size="lg" />
-    </div>
-);
+export const PageLoadingSpinner = () => {
+    const [messageIndex, setMessageIndex] = useState(0);
+
+    const motivationalMessages = [
+        "✨ Loading your opportunities...",
+        "🚀 Preparing something amazing...",
+        "💫 Almost there...",
+        "🎯 Getting everything ready...",
+        "⚡ Just a moment..."
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMessageIndex((prev) => (prev + 1) % motivationalMessages.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [motivationalMessages.length]);
+
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-sm text-muted-foreground animate-pulse">
+                {motivationalMessages[messageIndex]}
+            </p>
+        </div>
+    );
+};

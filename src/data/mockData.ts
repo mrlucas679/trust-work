@@ -1,5 +1,14 @@
 // Mock data for TrustWork app
 
+// Skill Test Configuration for Jobs
+export interface SkillTestConfig {
+  enabled: boolean;
+  requiredSkills: string[]; // e.g., ["React", "TypeScript", "Node.js"]
+  questionCount: number; // 10-30
+  duration: number; // auto-calculated: questionCount * 1.5 minutes
+  minimumPassScore: number; // 60-80%
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -12,6 +21,7 @@ export interface Job {
   salary?: string;
   requirements: string[];
   postedDate: string;
+  skillTestConfig?: SkillTestConfig;
 }
 
 export interface Gig {
@@ -74,20 +84,24 @@ export interface PortfolioItem {
   skills: string[];
 }
 
-export interface Assessment {
+export interface SkillTest {
   id: string;
   title: string;
   description: string;
-  questions: Question[];
+  questions: SkillTestQuestion[];
   badge: string;
 }
 
-export interface Question {
+export interface SkillTestQuestion {
   id: string;
   question: string;
   options: string[];
   correctAnswer: number;
 }
+
+// Keep legacy exports for backwards compatibility
+export type Assessment = SkillTest;
+export type Question = SkillTestQuestion;
 
 // Mock Jobs Data
 export const mockJobs: Job[] = [
@@ -102,7 +116,14 @@ export const mockJobs: Job[] = [
     flagged: false,
     salary: 'R45,000 - R65,000',
     requirements: ['React', 'TypeScript', '3+ years experience'],
-    postedDate: '2024-01-15'
+    postedDate: '2024-01-15',
+    skillTestConfig: {
+      enabled: true,
+      requiredSkills: ['React', 'JavaScript'], // Updated to use available skills
+      questionCount: 20,
+      duration: 30, // minutes
+      minimumPassScore: 75
+    }
   },
   {
     id: '2',
@@ -115,7 +136,14 @@ export const mockJobs: Job[] = [
     flagged: false,
     salary: 'R35,000 - R50,000',
     requirements: ['Digital Marketing', 'Social Media', '2+ years experience'],
-    postedDate: '2024-01-14'
+    postedDate: '2024-01-14',
+    skillTestConfig: {
+      enabled: true,
+      requiredSkills: ['JavaScript', 'React'], // Updated to use available skills (Marketing skills not yet in question bank)
+      questionCount: 15,
+      duration: 22, // minutes
+      minimumPassScore: 70
+    }
   },
   {
     id: '3',
@@ -129,6 +157,7 @@ export const mockJobs: Job[] = [
     salary: 'R15,000',
     requirements: ['Basic computer skills'],
     postedDate: '2024-01-16'
+    // No skill test - flagged job
   },
   {
     id: '4',
@@ -141,7 +170,14 @@ export const mockJobs: Job[] = [
     flagged: false,
     salary: 'R18,000 - R25,000',
     requirements: ['Communication skills', 'Problem solving'],
-    postedDate: '2024-01-13'
+    postedDate: '2024-01-13',
+    skillTestConfig: {
+      enabled: true,
+      requiredSkills: ['JavaScript'], // Updated to use available skills (Customer Service not yet in question bank)
+      questionCount: 10,
+      duration: 15, // minutes
+      minimumPassScore: 65
+    }
   },
   {
     id: '5',
@@ -155,6 +191,7 @@ export const mockJobs: Job[] = [
     salary: 'Commission only',
     requirements: ['Sales experience'],
     postedDate: '2024-01-17'
+    // No skill test - flagged job
   }
 ];
 
@@ -306,8 +343,8 @@ export const mockFlaggedEmployer: EmployerProfile = {
   riskFlags: ['Gmail domain', 'No registration number', 'High salary promises']
 };
 
-// Mock Assessments
-export const mockAssessments: Assessment[] = [
+// Mock Skill Tests
+export const mockSkillTests: SkillTest[] = [
   {
     id: '1',
     title: 'Excel Basics',
@@ -453,3 +490,6 @@ export const mockCertifications: Certification[] = [
     type: 'professional'
   }
 ];
+
+// Keep legacy export for backwards compatibility
+export const mockAssessments = mockSkillTests;

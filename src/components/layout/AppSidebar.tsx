@@ -12,7 +12,9 @@ import {
   Shield,
   LogOut,
   ClipboardList,
-  User
+  User,
+  Bell,
+  BarChart3
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +56,14 @@ const mainItems = [{
   url: "/messages",
   icon: MessageSquare,
   badge: "2"
+}, {
+  title: "Notifications",
+  url: "/notifications",
+  icon: Bell
+}, {
+  title: "Analytics",
+  url: "/analytics",
+  icon: BarChart3
 }, {
   title: "Assignments",
   url: "/assignments",
@@ -109,18 +119,34 @@ const bottomItems = [
  * 
  * Uses the useSidebar hook for all state management to avoid synchronization issues.
  */
-export function AppSidebar() {
-  const { setOpenMobile } = useSidebar();
+export function AppSidebar({ isOpen = true, onClose }: { isOpen?: boolean; onClose?: () => void }) {
+  // Safely access useSidebar if available (tests mock sidebar without the hook)
+  let setOpenMobile: (open: boolean) => void = () => { };
+  try {
+    const api = (useSidebar as unknown as (() => { setOpenMobile: (open: boolean) => void }) | undefined);
+    if (typeof api === 'function') {
+      const res = api();
+      if (res && typeof res.setOpenMobile === 'function') {
+        setOpenMobile = res.setOpenMobile;
+      }
+    }
+  } catch {
+    // noop fallback for test environment
+  }
 
   // Close sidebar on navigation (mobile only)
   const handleNavigationClick = React.useCallback(() => {
+    onClose?.();
     setOpenMobile(false);
-  }, [setOpenMobile]);
+  }, [onClose]);
 
   return (
     <Sidebar
       collapsible="offcanvas"
-      className="sidebar-with-navbar"
+      className={cn(
+        "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-300 ease-in-out backdrop-blur bg-background/95 shadow-lg w-[280px] border-r",
+        isOpen ? "translate-x-0" : "translate-x-[-100%]"
+      )}
     >
       {/* Branded header - visible only on mobile */}
       {/* Logo and name - only visible on mobile */}

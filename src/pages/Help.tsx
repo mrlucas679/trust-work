@@ -67,7 +67,7 @@ const Help = () => {
     {
       id: "profile-tips",
       question: "How can I improve my profile to get more opportunities?",
-      answer: "Complete all profile sections, add a professional photo, showcase your best work in your portfolio, get verified skills through our assessments, maintain a high rating by delivering quality work, and keep your profile updated with recent experience."
+      answer: "Complete all profile sections, add a professional photo, showcase your best work in your portfolio, get verified skills through our skill tests, maintain a high rating by delivering quality work, and keep your profile updated with recent experience."
     }
   ];
 

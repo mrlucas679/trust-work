@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Shield, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSupabase } from "@/providers/SupabaseProvider";
+import { secureCompare } from "@/lib/security/sanitization";
 
 /**
  * ResetPassword component - Allows users to set a new password after clicking email link
@@ -73,9 +74,8 @@ const ResetPassword = () => {
             return;
         }
 
-        // Check passwords match using length comparison first to avoid timing attacks
-        // Note: This is user input comparison, not credential comparison, so timing attacks are not a practical concern
-        const passwordsMatch = password.length === confirmPassword.length && password === confirmPassword;
+        // Use constant-time comparison to prevent timing attacks
+        const passwordsMatch = secureCompare(password, confirmPassword);
         if (!passwordsMatch) {
             setError('Passwords do not match');
             return;
