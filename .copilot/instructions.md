@@ -120,7 +120,7 @@ TrustWork is a safety-focused job marketplace application that connects job seek
 
 ## File Structure Overview
 
-```
+```text
 src/
 ├── components/       # Reusable components
 │   ├── layout/      # Layout components

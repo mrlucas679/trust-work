@@ -14,52 +14,128 @@ import {
   Mail,
   Globe,
   Building,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from "lucide-react";
 import VerificationBadge from "@/components/trust/VerificationBadge";
 import RiskIndicator from "@/components/trust/RiskIndicator";
 import CertificationDisplay from "@/components/certifications/CertificationDisplay";
 import { useNavigate, useParams } from "react-router-dom";
-import { mockJobSeeker, mockEmployer } from "@/data/mockData";
 import { useSupabase } from "@/providers/SupabaseProvider";
+
+interface ProfileData {
+  id: string;
+  display_name: string;
+  email: string;
+  phone?: string;
+  location?: string;
+  role: 'job_seeker' | 'employer';
+  skills: string[];
+  cv_url?: string;
+  avatar_url?: string;
+  created_at: string;
+  completedJobs: number;
+  rating: number;
+  portfolio: Array<{ id: string; title: string; client: string; description: string; rating: number; skills: string[] }>;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
-  const isOwnProfile = !userId; // If no userId in params, it's the user's own profile
   const { supabase, user: authUser } = useSupabase();
-  const [cvUrl, setCvUrl] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isOwnProfile = !userId || userId === authUser?.id;
+  const targetUserId = userId || authUser?.id;
+
   const safeCvUrl = (() => {
-    if (!cvUrl) return null;
+    if (!profile?.cv_url) return null;
     try {
-      const u = new URL(cvUrl);
+      const u = new URL(profile.cv_url);
       const isHttp = u.protocol === 'https:' || u.protocol === 'http:';
-      const isSupabasePublic = cvUrl.includes('/storage/v1/object/public/');
-      return isHttp && isSupabasePublic ? cvUrl : null;
+      const isSupabasePublic = profile.cv_url.includes('/storage/v1/object/public/');
+      return isHttp && isSupabasePublic ? profile.cv_url : null;
     } catch {
       return null;
     }
   })();
 
-  // For demo purposes, show job seeker profile
-  const user = mockJobSeeker;
-
   useEffect(() => {
     let mounted = true;
-    async function loadCv() {
-      const targetId = userId ?? authUser?.id;
-      if (!targetId) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('cv_url')
-        .eq('id', targetId)
-        .single();
-      if (!mounted) return;
-      if (!error) setCvUrl(data?.cv_url ?? null);
+    async function loadProfile() {
+      if (!targetUserId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch profile data from Supabase
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUserId)
+          .single();
+
+        if (!mounted) return;
+
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+          setIsLoading(false);
+          return;
+        }
+
+        // Get user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        const email = user?.email || '';
+
+        // TODO: Fetch completed jobs count and rating from assignments/reviews tables
+        // For now, use placeholder values
+        const completedJobs = 0;
+        const rating = 0;
+
+        setProfile({
+          id: profileData.id,
+          display_name: profileData.display_name || email.split('@')[0],
+          email: email,
+          phone: profileData.phone,
+          location: profileData.location || profileData.city,
+          role: profileData.role || 'job_seeker',
+          skills: profileData.skills || [],
+          cv_url: profileData.cv_url,
+          avatar_url: user?.user_metadata?.avatar_url,
+          created_at: profileData.created_at || new Date().toISOString(),
+          completedJobs,
+          rating,
+          portfolio: [], // TODO: Fetch from portfolio table when implemented
+        });
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
     }
-    loadCv();
+
+    loadProfile();
     return () => { mounted = false; };
-  }, [supabase, userId, authUser?.id]);
+  }, [supabase, targetUserId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-muted-foreground mb-4">Profile not found</p>
+        <Button onClick={() => navigate('/')}>Go Home</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -68,46 +144,50 @@ const Profile = () => {
         <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
-              <AvatarImage src={user.avatar} />
+              <AvatarImage src={profile.avatar_url} />
               <AvatarFallback className="text-2xl font-semibold">
-                {user.name.split(' ').map(n => n[0]).join('')}
+                {profile.display_name.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
 
             <div className="flex-1 w-full min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <h1 className="text-2xl sm:text-3xl font-bold">{user.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold">{profile.display_name}</h1>
                 <VerificationBadge
-                  type={user.verified ? "verified" : "pending"}
-                  details={user.verified ? ["Identity verified", "Skills assessed", "Background checked"] : ["Verification in progress"]}
+                  type="pending"
+                  details={["Verification in progress"]}
                 />
-                <RiskIndicator level="low" reasons={["Verified identity", "Good reviews", "Consistent work history"]} />
+                <RiskIndicator level="low" reasons={["Profile complete", "Account verified"]} />
               </div>
 
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Mail className="h-4 w-4" />
-                  <span className="truncate">{user.email}</span>
+                  <span className="truncate">{profile.email}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>Cape Town, South Africa</span>
-                </div>
+                {profile.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{profile.location}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined January 2024</span>
+                  <span>Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-warning" />
-                  <span className="font-semibold text-lg">{user.rating}</span>
-                  <span className="text-sm text-muted-foreground">({user.completedJobs} reviews)</span>
-                </div>
+                {profile.rating > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-warning" />
+                    <span className="font-semibold text-lg">{profile.rating.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">({profile.completedJobs} reviews)</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-primary" />
-                  <span className="font-semibold">{user.completedJobs}</span>
+                  <span className="font-semibold">{profile.completedJobs}</span>
                   <span className="text-sm text-muted-foreground">completed jobs</span>
                 </div>
               </div>
@@ -141,9 +221,10 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                Experienced full-stack developer and digital marketing specialist with a passion for creating
-                innovative solutions. I help businesses grow through technology and strategic marketing campaigns.
-                With {user.completedJobs} successfully completed projects, I bring reliability and quality to every task.
+                {profile.role === 'job_seeker'
+                  ? `Experienced professional with ${profile.completedJobs} successfully completed projects. Browse my skills and portfolio below.`
+                  : `Employer looking to hire talented professionals. ${profile.completedJobs} projects posted.`
+                }
               </p>
             </CardContent>
           </Card>
@@ -159,28 +240,32 @@ const Profile = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {user.portfolio.slice(0, 2).map((project) => (
-                <div key={project.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold">{project.title}</h3>
-                      <p className="text-sm text-muted-foreground">{project.client}</p>
+              {profile.portfolio.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No portfolio items yet</p>
+              ) : (
+                profile.portfolio.slice(0, 2).map((project) => (
+                  <div key={project.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold">{project.title}</h3>
+                        <p className="text-sm text-muted-foreground">{project.client}</p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Star className="h-4 w-4 text-warning" />
+                        <span className="font-medium">{project.rating}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Star className="h-4 w-4 text-warning" />
-                      <span className="font-medium">{project.rating}</span>
+                    <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.skills.slice(0, 3).map((skill) => (
+                        <Badge key={skill} variant="secondary" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.skills.slice(0, 3).map((skill) => (
-                      <Badge key={skill} variant="secondary" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -200,11 +285,15 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {user.skills.map((skill) => (
-                  <Badge key={skill} variant="outline" className="border-verified text-verified">
-                    {skill}
-                  </Badge>
-                ))}
+                {profile.skills.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No skills added yet</p>
+                ) : (
+                  profile.skills.map((skill) => (
+                    <Badge key={skill} variant="outline" className="border-verified text-verified">
+                      {skill}
+                    </Badge>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

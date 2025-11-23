@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Target, Star, TrendingUp, CheckCircle, ArrowRight } from "lucide-react";
+import { Zap, Target, Star, TrendingUp, CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { mockJobs, mockGigs, mockJobSeeker } from "@/data/mockData";
+import { getJobs, type Assignment } from "@/lib/api/assignments";
+import { getGigs, type Gig } from "@/lib/api/gigs";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 interface MatchScore {
   jobId: string;
@@ -18,27 +20,68 @@ interface MatchScore {
 
 const MatchingEngine = memo(() => {
   const navigate = useNavigate();
+  const { supabase, user } = useSupabase();
   const [matches, setMatches] = useState<MatchScore[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {
-    // Simulate AI matching analysis
-    const timer = setTimeout(() => {
-      const jobMatches = calculateMatches();
-      setMatches(jobMatches);
-      setIsAnalyzing(false);
-    }, 2000);
+    async function fetchDataAndMatch() {
+      if (!user) {
+        setIsAnalyzing(false);
+        return;
+      }
 
-    return () => clearTimeout(timer);
-  }, []);
+      try {
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('skills, location')
+          .eq('id', user.id)
+          .single();
 
-  const calculateMatches = (): MatchScore[] => {
-    const userSkills = mockJobSeeker.skills.map(s => s.toLowerCase());
-    const userExperience = 3; // Mock experience years
+        if (profile) {
+          setUserSkills(profile.skills || []);
+          setUserLocation(profile.location || '');
+        }
+
+        // Fetch jobs and gigs
+        const [jobsData, gigsData] = await Promise.all([
+          getJobs({}, 50),
+          getGigs()
+        ]);
+
+        const jobMatches = calculateMatches(
+          jobsData.data || [],
+          gigsData || [],
+          profile?.skills || [],
+          profile?.location || ''
+        );
+
+        setMatches(jobMatches);
+      } catch (error) {
+        console.error('Error in matching engine:', error);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+
+    fetchDataAndMatch();
+  }, [user, supabase]);
+
+  const calculateMatches = (
+    jobs: Assignment[],
+    gigs: Gig[],
+    skills: string[],
+    location: string
+  ): MatchScore[] => {
+    const userSkills = skills.map(s => s.toLowerCase());
+    const userExperience = 3; // TODO: Calculate from profile/work history
 
     const allOpportunities = [
-      ...mockJobs.map(job => ({ ...job, type: 'job' as const })),
-      ...mockGigs.map(gig => ({ ...gig, type: 'gig' as const, requirements: gig.skills }))
+      ...jobs.map(job => ({ ...job, type: 'job' as const, requirements: [] as string[] })),
+      ...gigs.map(gig => ({ ...gig, type: 'gig' as const, requirements: gig.required_skills || [] }))
     ];
 
     return allOpportunities
@@ -47,20 +90,22 @@ const MatchingEngine = memo(() => {
         const matchReasons: string[] = [];
 
         // Skill matching (40% weight)
-        const reqSkills = opportunity.requirements?.map(r => r.toLowerCase()) || [];
+        const reqSkills = opportunity.requirements.map(r => r.toLowerCase());
         const skillMatches = reqSkills.filter(skill =>
           userSkills.some(userSkill => userSkill.includes(skill) || skill.includes(userSkill))
         );
 
-        if (skillMatches.length > 0) {
+        if (reqSkills.length > 0 && skillMatches.length > 0) {
           const skillScore = (skillMatches.length / reqSkills.length) * 40;
           score += skillScore;
           matchReasons.push(`${skillMatches.length}/${reqSkills.length} skills match`);
+        } else if (reqSkills.length === 0) {
+          score += 20; // No specific skills required
+          matchReasons.push("No specific skills required");
         }
 
         // Experience level matching (30% weight)
         if (opportunity.type === 'job') {
-          // Simple experience matching logic
           if (userExperience >= 3) {
             score += 30;
             matchReasons.push("Experience level aligned");
@@ -77,9 +122,9 @@ const MatchingEngine = memo(() => {
         }
 
         // Location matching (15% weight)
-        const opportunityLocation = opportunity.type === 'job' ? opportunity.location : 'remote';
-        if (opportunityLocation?.toLowerCase().includes('remote') ||
-          mockJobSeeker.location?.toLowerCase().includes(opportunityLocation?.toLowerCase() || '')) {
+        const opportunityLocation = opportunity.location || 'remote';
+        if (opportunityLocation.toLowerCase().includes('remote') ||
+          location.toLowerCase().includes(opportunityLocation.toLowerCase())) {
           score += 15;
           matchReasons.push("Location preference match");
         } else {
@@ -104,7 +149,7 @@ const MatchingEngine = memo(() => {
         return {
           jobId: opportunity.id,
           title: opportunity.title,
-          company: 'company' in opportunity ? opportunity.company : opportunity.client,
+          company: opportunity.type === 'job' ? opportunity.category : (opportunity.category || 'Client'),
           score: Math.min(Math.max(score, 0), 100),
           matchReasons,
           type: opportunity.type
@@ -138,7 +183,7 @@ const MatchingEngine = memo(() => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
             <p className="text-muted-foreground">Analyzing your profile and preferences...</p>
             <p className="text-sm text-muted-foreground mt-2">Matching skills, experience, and location</p>
           </div>

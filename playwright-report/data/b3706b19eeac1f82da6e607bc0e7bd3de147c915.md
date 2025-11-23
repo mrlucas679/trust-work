@@ -1,9 +1,0 @@
-# Page snapshot
-
-```yaml
-- generic [active] [ref=e1]:
-  - link [ref=e2] [cursor=pointer]:
-    - /url: http://www.enterprisedb.com
-    - img [ref=e3]
-  - text: Server is up and running.
-```

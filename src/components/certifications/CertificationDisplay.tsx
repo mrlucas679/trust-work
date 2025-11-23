@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, CheckCircle, XCircle, Lock, Coins } from 'lucide-react';
+import { Trophy, CheckCircle, XCircle, Lock, Coins, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
     UserAssignmentProfile,
@@ -117,10 +117,10 @@ const CertificationDisplay = ({ isOwnProfile = true, userProfile }: Certificatio
                                             <div
                                                 key={level}
                                                 className={`p-3 rounded-lg border ${cert.passed
-                                                        ? 'bg-success/5 border-success/30'
-                                                        : cert.attempts > 0
-                                                            ? 'bg-destructive/5 border-destructive/30'
-                                                            : 'bg-muted/30 border-muted'
+                                                    ? 'bg-success/5 border-success/30'
+                                                    : cert.attempts > 0
+                                                        ? 'bg-destructive/5 border-destructive/30'
+                                                        : 'bg-muted/30 border-muted'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-1">
@@ -148,6 +148,21 @@ const CertificationDisplay = ({ isOwnProfile = true, userProfile }: Certificatio
                                                     <span className="text-xs text-muted-foreground">
                                                         {isOwnProfile ? `Retake available${cert.nextRetakeAvailable ? ' soon' : ''}` : 'In progress'}
                                                     </span>
+                                                )}
+                                                {/* View Certificate button - ONLY for Expert level passed */}
+                                                {cert.passed && level === 'expert' && isOwnProfile && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="w-full mt-2 text-xs h-7 border-verified text-verified hover:bg-verified/10"
+                                                        onClick={() => {
+                                                            const assignmentId = `${skill}_${level}_attempt_1`;
+                                                            navigate(`/assessment/${assignmentId}/certificate`);
+                                                        }}
+                                                    >
+                                                        <Award className="h-3 w-3 mr-1" />
+                                                        View Certificate
+                                                    </Button>
                                                 )}
                                             </div>
                                         );

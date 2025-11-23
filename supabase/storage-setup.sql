@@ -22,8 +22,14 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- Create storage policies for the resumes bucket
+-- Note: Drop existing policies first to avoid conflicts, then recreate them
+DROP POLICY IF EXISTS "Users can upload their own CVs" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own CVs" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own CVs" ON storage.objects;
+DROP POLICY IF EXISTS "Public can read CVs" ON storage.objects;
+
 -- Policy 1: Allow authenticated users to upload their own CVs
-CREATE POLICY IF NOT EXISTS "Users can upload their own CVs"
+CREATE POLICY "Users can upload their own CVs"
 ON storage.objects
 FOR INSERT
 TO authenticated
@@ -33,7 +39,7 @@ WITH CHECK (
 );
 
 -- Policy 2: Allow authenticated users to update their own CVs
-CREATE POLICY IF NOT EXISTS "Users can update their own CVs"
+CREATE POLICY "Users can update their own CVs"
 ON storage.objects
 FOR UPDATE
 TO authenticated
@@ -47,7 +53,7 @@ WITH CHECK (
 );
 
 -- Policy 3: Allow authenticated users to delete their own CVs
-CREATE POLICY IF NOT EXISTS "Users can delete their own CVs"
+CREATE POLICY "Users can delete their own CVs"
 ON storage.objects
 FOR DELETE
 TO authenticated
@@ -58,7 +64,7 @@ USING (
 
 -- Policy 4: Allow public read access to CVs (for MVP)
 -- Change this if you want to use signed URLs instead
-CREATE POLICY IF NOT EXISTS "Public can read CVs"
+CREATE POLICY "Public can read CVs"
 ON storage.objects
 FOR SELECT
 TO public

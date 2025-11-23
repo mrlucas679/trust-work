@@ -7,14 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import {
-  HelpCircle, Search, MessageCircle, Shield, AlertTriangle,
+  HelpCircle, MessageCircle, Shield, AlertTriangle,
   Phone, Mail, Clock, CheckCircle, ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Help = () => {
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -94,10 +93,7 @@ const Help = () => {
     }
   ];
 
-  const filteredFaqs = faqs.filter(faq =>
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFaqs = faqs; // Show all FAQs, universal search will handle filtering
 
   return (
     <div className="space-y-8">
@@ -172,25 +168,18 @@ const Help = () => {
         </CardContent>
       </Card>
 
-      {/* FAQ Search */}
+      {/* FAQ Section */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5" />
             Frequently Asked Questions
           </CardTitle>
+          <CardDescription>
+            Search for FAQs using the search bar at the top of the page
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search FAQs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
           <Accordion type="single" collapsible className="w-full">
             {filteredFaqs.map((faq) => (
               <AccordionItem key={faq.id} value={faq.id}>
@@ -206,10 +195,7 @@ const Help = () => {
 
           {filteredFaqs.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No FAQs found matching your search.</p>
-              <Button variant="outline" className="mt-2" onClick={() => setSearchQuery("")}>
-                Clear Search
-              </Button>
+              <p className="text-muted-foreground">No FAQs found.</p>
             </div>
           )}
         </CardContent>

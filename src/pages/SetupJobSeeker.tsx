@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
     Upload, X, Shield, User, Briefcase, GraduationCap,
-    FileText, Target, MapPin, DollarSign, Clock, ChevronRight,
+    FileText, Target, MapPin, Clock, ChevronRight,
     ChevronLeft, Check
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";

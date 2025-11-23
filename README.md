@@ -11,6 +11,7 @@ All active, project-level documentation lives in the `docs/` folder. Please chec
 - `docs/API.md` — API endpoint specs, authentication, formats, error handling
 - `docs/DEVELOPMENT_WORKFLOW.md` — Coding standards, branching, testing, and pre-merge checklist
 - `docs/ARCHITECTURE.md` — (New) High-level architecture diagram and explanations
+- `docs/SEED_DATA.md` — Populating Supabase with test data and test user credentials
 
 ## Keep docs up to date
 

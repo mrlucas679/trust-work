@@ -7,12 +7,50 @@ export interface EnvironmentConfig {
 }
 
 /**
+ * S3 Storage configuration (optional)
+ */
+export interface S3StorageConfig {
+    S3_ENDPOINT?: string
+    S3_REGION?: string
+    STORAGE_BUCKET?: string
+}
+
+/**
+ * Full environment configuration including optional S3
+ */
+export interface FullEnvironmentConfig extends EnvironmentConfig, S3StorageConfig { }
+
+/**
  * Get environment variables without validation
  */
-export function getEnvironment(): EnvironmentConfig {
+export function getEnvironment(): FullEnvironmentConfig {
     return {
         SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
         SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        S3_ENDPOINT: import.meta.env.VITE_SUPABASE_S3_ENDPOINT,
+        S3_REGION: import.meta.env.VITE_SUPABASE_S3_REGION,
+        STORAGE_BUCKET: import.meta.env.VITE_SUPABASE_STORAGE_BUCKET,
+    }
+}
+
+/**
+ * Check if S3 storage is configured (optional feature)
+ */
+export function isS3Configured(): boolean {
+    const endpoint = import.meta.env.VITE_SUPABASE_S3_ENDPOINT
+    const region = import.meta.env.VITE_SUPABASE_S3_REGION
+    return !!(endpoint && region)
+}
+
+/**
+ * Get S3 configuration if available
+ */
+export function getS3Config(): S3StorageConfig | null {
+    if (!isS3Configured()) return null
+    return {
+        S3_ENDPOINT: import.meta.env.VITE_SUPABASE_S3_ENDPOINT,
+        S3_REGION: import.meta.env.VITE_SUPABASE_S3_REGION,
+        STORAGE_BUCKET: import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'resumes',
     }
 }
 

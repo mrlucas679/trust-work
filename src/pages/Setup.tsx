@@ -20,7 +20,8 @@ const Setup = () => {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) {
-        setProfileLoading(false);
+        // No user logged in, redirect to auth
+        navigate('/auth');
         return;
       }
 
@@ -77,7 +78,7 @@ const Setup = () => {
     };
 
     loadProfile();
-  }, [user, supabase]);
+  }, [user, supabase, navigate]);
 
   // If user is a job seeker, show the comprehensive onboarding wizard
   if (userRole === 'job_seeker') {

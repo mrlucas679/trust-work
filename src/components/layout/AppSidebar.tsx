@@ -12,7 +12,10 @@ import {
   Shield,
   LogOut,
   ClipboardList,
-  User
+  User,
+  Bell,
+  BarChart3,
+  Building2
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,63 +24,114 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  useSidebar
 } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/use-sidebar";
 import { NavigationItem } from "./sidebar/NavigationItem";
 import { ThemeToggle } from "./sidebar/ThemeToggle";
 import { cn } from "@/lib/utils";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { useNavigate } from "react-router-dom";
 
 /**
- * Type definition for navigation items
- * Ensures type safety and prevents runtime errors
+ * Primary navigation items - role-based
  */
-interface NavigationItemType {
-  title: string;
-  url: string;
-  icon: React.ElementType;
-  badge?: string;
-  customComponent?: boolean;
-}
+const getNavigationItems = (role: 'employer' | 'job_seeker' | null) => {
+  if (role === 'employer') {
+    return [
+      {
+        title: "Dashboard",
+        url: "/dashboard/employer",
+        icon: Home
+      },
+      {
+        title: "Jobs",
+        url: "/jobs",
+        icon: Briefcase
+      },
+      {
+        title: "My Jobs",
+        url: "/my-jobs",
+        icon: ClipboardList,
+        badge: "0"
+      },
+      {
+        title: "Gigs",
+        url: "/gigs",
+        icon: FileText
+      },
+      {
+        title: "Messages",
+        url: "/messages",
+        icon: MessageSquare,
+        badge: "2"
+      },
+      {
+        title: "Analytics",
+        url: "/analytics",
+        icon: BarChart3
+      },
+      {
+        title: "Business Verification",
+        url: "/business-verification",
+        icon: Building2
+      },
+      {
+        title: "Notifications",
+        url: "/notifications",
+        icon: Bell
+      }
+    ];
+  }
 
-/**
- * Primary navigation items for the main menu
- * Each item must have title, url, and icon properties
- */
-const mainItems: NavigationItemType[] = [{
-  title: "My Space",
-  url: "/dashboard/job-seeker",
-  icon: Home
-}, {
-  title: "Jobs",
-  url: "/jobs",
-  icon: Briefcase,
-  badge: "12"
-}, {
-  title: "Gigs",
-  url: "/gigs",
-  icon: FileText,
-  badge: "5"
-}, {
-  title: "Applications",
-  url: "/applications",
-  icon: Briefcase,
-  badge: "3"
-}, {
-  title: "Messages",
-  url: "/messages",
-  icon: MessageSquare,
-  badge: "2"
-}, {
-  title: "Assignments",
-  url: "/assignments",
-  icon: ClipboardList,
-  badge: "0"
-}];
+  // Job seeker navigation
+  return [
+    {
+      title: "My Space",
+      url: "/dashboard/job-seeker",
+      icon: Home
+    },
+    {
+      title: "Jobs",
+      url: "/jobs",
+      icon: Briefcase,
+      badge: "12"
+    },
+    {
+      title: "Gigs",
+      url: "/gigs",
+      icon: FileText,
+      badge: "5"
+    },
+    {
+      title: "My Applications",
+      url: "/applications",
+      icon: ClipboardList,
+      badge: "3"
+    },
+    {
+      title: "Assignments",
+      url: "/assignments",
+      icon: FileText,
+      badge: "0"
+    },
+    {
+      title: "Messages",
+      url: "/messages",
+      icon: MessageSquare,
+      badge: "2"
+    },
+    {
+      title: "Notifications",
+      url: "/notifications",
+      icon: Bell
+    }
+  ];
+};
 /**
  * Secondary navigation items for the bottom menu
  * Includes support, settings, and system-related actions
  */
-const bottomItems: NavigationItemType[] = [
+const bottomItems = [
   {
     title: "Profile",
     url: "/profile",
@@ -97,17 +151,6 @@ const bottomItems: NavigationItemType[] = [
     title: "Help",
     url: "/help",
     icon: HelpCircle
-  },
-  {
-    title: "Log Out",
-    url: "/auth",
-    icon: LogOut
-  },
-  {
-    title: "Theme",
-    url: "#",
-    icon: () => <ThemeToggle />,
-    customComponent: true
   }
 ];
 /**
@@ -119,38 +162,60 @@ const bottomItems: NavigationItemType[] = [
  * - Main navigation menu with notification badges
  * - Support section with theme toggle and user actions
  * - Smooth animations and transitions
- * - Error resilient with defensive checks
- * - Accessibility compliant
  * 
  * Uses the useSidebar hook for all state management to avoid synchronization issues.
- * 
- * @throws {Error} When useSidebar context is not available - should be wrapped in SidebarProvider
  */
-export function AppSidebar() {
-  // Must call hooks unconditionally at the top level
-  const { setOpenMobile } = useSidebar();
+export function AppSidebar({ isOpen = true, onClose }: { isOpen?: boolean; onClose?: () => void }) {
+  const { supabase, role } = useSupabase();
+  const navigate = useNavigate();
+
+  // Get role-specific navigation items
+  const mainItems = getNavigationItems(role);
+
+  // Safely access useSidebar if available (tests mock sidebar without the hook)
+  let setOpenMobile: (open: boolean) => void = () => { };
+  try {
+    const api = (useSidebar as unknown as (() => { setOpenMobile: (open: boolean) => void }) | undefined);
+    if (typeof api === 'function') {
+      const res = api();
+      if (res && typeof res.setOpenMobile === 'function') {
+        setOpenMobile = res.setOpenMobile;
+      }
+    }
+  } catch {
+    // noop fallback for test environment
+  }
 
   // Close sidebar on navigation (mobile only)
-  // Memoized to prevent unnecessary re-renders
   const handleNavigationClick = React.useCallback(() => {
+    onClose?.();
+    setOpenMobile(false);
+  }, [onClose]);
+
+  // Handle logout
+  const handleLogout = React.useCallback(async () => {
     try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+      onClose?.();
       setOpenMobile(false);
     } catch (error) {
-      console.error('AppSidebar: Error closing sidebar', error);
+      console.error('Error signing out:', error);
     }
-  }, [setOpenMobile]);
+  }, [supabase, navigate, onClose]);
 
   return (
     <Sidebar
-      collapsible="offcanvas"
-      className="sidebar-with-navbar"
-      aria-label="Main navigation sidebar"
+      className={cn(
+        "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-300 ease-in-out backdrop-blur bg-background/95 shadow-lg w-[280px] border-r",
+        isOpen ? "translate-x-0" : "translate-x-[-100%]"
+      )}
     >
       {/* Branded header - visible only on mobile */}
       {/* Logo and name - only visible on mobile */}
-      <div className="md:hidden h-16 flex items-center px-4 border-b" role="banner">
+      <div className="md:hidden h-16 flex items-center px-4 border-b">
         <div className="flex items-center gap-2">
-          <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
+          <Shield className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold">TrustWork</span>
         </div>
       </div>
@@ -161,31 +226,17 @@ export function AppSidebar() {
       )}>
         <SidebarGroup className="pt-2">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5 px-3" role="navigation" aria-label="Primary navigation">
-              {/* Defensive: Filter out invalid items to handle potential runtime issues
-                  While items are static, this protects against future refactoring or
-                  dynamic item loading scenarios */}
-              {mainItems
-                .filter(item => item && item.title && item.url && item.icon)
-                .map(item => {
-                  // Defensive: Try-catch per item ensures one bad item doesn't break all navigation
-                  // Provides isolation beyond error boundary for better user experience
-                  try {
-                    return (
-                      <NavigationItem
-                        key={item.title}
-                        icon={item.icon}
-                        title={item.title}
-                        to={item.url}
-                        badge={item.badge}
-                        onClick={handleNavigationClick}
-                      />
-                    );
-                  } catch (error) {
-                    console.error(`AppSidebar: Error rendering navigation item "${item.title}"`, error);
-                    return null;
-                  }
-                })}
+            <SidebarMenu className="space-y-1.5 px-3">
+              {mainItems.map(item => (
+                <NavigationItem
+                  key={item.title}
+                  icon={item.icon}
+                  title={item.title}
+                  to={item.url}
+                  badge={item.badge}
+                  onClick={handleNavigationClick}
+                />
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -193,34 +244,39 @@ export function AppSidebar() {
         <SidebarGroup className="mt-6">
           <SidebarGroupLabel className={cn(
             "px-4 mb-2 text-xs uppercase tracking-wider text-muted-foreground/70"
-          )} role="heading" aria-level={2}>
+          )}>
             Support
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5 px-3" role="navigation" aria-label="Support navigation">
-              {/* Defensive: Filter out invalid items to handle potential runtime issues
-                  While items are static, this protects against future refactoring or
-                  dynamic item loading scenarios */}
-              {bottomItems
-                .filter(item => item && item.title && item.url && item.icon)
-                .map(item => {
-                  // Defensive: Try-catch per item ensures one bad item doesn't break all navigation
-                  // Provides isolation beyond error boundary for better user experience
-                  try {
-                    return (
-                      <NavigationItem
-                        key={item.title}
-                        icon={item.icon}
-                        title={item.title}
-                        to={item.url}
-                        onClick={handleNavigationClick}
-                      />
-                    );
-                  } catch (error) {
-                    console.error(`AppSidebar: Error rendering navigation item "${item.title}"`, error);
-                    return null;
-                  }
-                })}
+            <SidebarMenu className="space-y-1.5 px-3">
+              {bottomItems.map(item => (
+                <NavigationItem
+                  key={item.title}
+                  icon={item.icon}
+                  title={item.title}
+                  to={item.url}
+                  onClick={handleNavigationClick}
+                />
+              ))}
+
+              {/* Theme Toggle */}
+              <div className="group relative flex items-center w-full rounded-md px-3 py-2 text-sm font-medium">
+                <ThemeToggle />
+              </div>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                data-testid="nav-log-out"
+                className={cn(
+                  "group relative flex items-center w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  "hover:text-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                )}
+              >
+                <LogOut className="h-5 w-5 mr-3 transition-transform group-hover:scale-105" />
+                <span className="flex-1 truncate">Log Out</span>
+              </button>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

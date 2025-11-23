@@ -39,6 +39,7 @@ Day-to-day development workflow:
 |----------|-------------|----------|
 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md) | Coding standards, Git workflow, PR process, onboarding checklist | All developers |
 | [TESTING.md](./TESTING.md) | Testing strategy, running tests, writing tests, coverage | All developers |
+| [SEED_DATA.md](./SEED_DATA.md) | Populating Supabase with test data, test user credentials | All developers |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute, commit format, review process | Contributors |
 | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | 50+ common issues with solutions across 8 categories | All developers |
 
@@ -191,6 +192,7 @@ Planning and tracking:
 | DATABASE.md | 1.0 | Nov 3, 2025 |
 | TESTING.md | 1.0 | Nov 3, 2025 |
 | GETTING_STARTED.md | 1.0 | Nov 3, 2025 |
+| SEED_DATA.md | 1.0 | Nov 7, 2025 |
 | DEPLOYMENT.md | 1.0 | Nov 3, 2025 |
 | TROUBLESHOOTING.md | 1.0 | Nov 3, 2025 |
 | MONITORING.md | 1.0 | Nov 3, 2025 |

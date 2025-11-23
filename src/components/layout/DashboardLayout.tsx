@@ -1,7 +1,8 @@
 import { ReactNode, useState, useEffect } from "react";
 import { TopNavigation } from "./TopNavigation";
 import { AppSidebar } from "./AppSidebar";
-import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/use-sidebar";
 import { SidebarErrorBoundary } from "@/components/error/SidebarErrorBoundary";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -11,15 +12,23 @@ interface DashboardLayoutProps {
 }
 
 function DashboardLayoutContent({ children }: DashboardLayoutProps) {
-    const { openMobile, setOpenMobile, isMobile: sidebarIsMobile } = useSidebar();
+    const { open, setOpen, openMobile, setOpenMobile, isMobile: sidebarIsMobile } = useSidebar();
     const isMobile = useIsMobile();
 
     const toggleSidebar = () => {
-        setOpenMobile(!openMobile);
+        if (isMobile) {
+            setOpenMobile(!openMobile);
+        } else {
+            setOpen(!open);
+        }
     };
 
     const closeSidebar = () => {
-        setOpenMobile(false);
+        if (isMobile) {
+            setOpenMobile(false);
+        } else {
+            setOpen(false);
+        }
     };
 
     // Prevent body scroll when sidebar is open on mobile
@@ -78,7 +87,7 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
             {/* Smooth Sliding Sidebar - positioned below navbar */}
             {/* Wrapped in Error Boundary to prevent sidebar errors from crashing the app */}
             <SidebarErrorBoundary>
-                <AppSidebar />
+                <AppSidebar isOpen={isMobile ? openMobile : open} onClose={closeSidebar} />
             </SidebarErrorBoundary>
 
             {/* Main Content Area - ONLY scroll container */}
