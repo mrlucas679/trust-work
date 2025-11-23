@@ -43,7 +43,9 @@ const AuthCallback = () => {
 
                     if (data.user) {
                         // Create or update profile with OAuth user data
-                        const role = searchParams.get('role') || 'job_seeker';
+                        // Get role from localStorage (set before OAuth redirect)
+                        const role = localStorage.getItem('pendingUserRole') || 'job_seeker';
+                        localStorage.removeItem('pendingUserRole'); // Clean up
 
                         // Get user metadata from OAuth provider
                         const { full_name, avatar_url, email } = data.user.user_metadata;

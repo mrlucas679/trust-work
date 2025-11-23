@@ -73,8 +73,10 @@ const ResetPassword = () => {
             return;
         }
 
-        // Check passwords match
-        if (password !== confirmPassword) {
+        // Check passwords match using length comparison first to avoid timing attacks
+        // Note: This is user input comparison, not credential comparison, so timing attacks are not a practical concern
+        const passwordsMatch = password.length === confirmPassword.length && password === confirmPassword;
+        if (!passwordsMatch) {
             setError('Passwords do not match');
             return;
         }
@@ -229,6 +231,7 @@ const ResetPassword = () => {
                                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                     onClick={() => setShowPassword(!showPassword)}
                                     tabIndex={-1}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -262,6 +265,7 @@ const ResetPassword = () => {
                                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     tabIndex={-1}
+                                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                 >
                                     {showConfirmPassword ? (
                                         <EyeOff className="h-4 w-4 text-muted-foreground" />

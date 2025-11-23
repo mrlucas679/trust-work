@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { createAssignment } from "@/lib/api/assignments";
 
 interface JobForm {
   title: string;
@@ -104,15 +105,40 @@ const PostJob = () => {
       return;
     }
 
-    // Simulate job posting
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Create assignment in database
+      const assignment = await createAssignment({
+        title: formData.title,
+        description: formData.description,
+        category: formData.department || 'general',
+        budget_min: formData.salaryMin ? parseInt(formData.salaryMin) : undefined,
+        budget_max: formData.salaryMax ? parseInt(formData.salaryMax) : undefined,
+        budget_type: 'fixed',
+        required_skills: formData.requirements,
+        experience_level: (formData.experienceLevel === 'mid' ? 'intermediate' : formData.experienceLevel) as 'entry' | 'intermediate' | 'expert' | 'any' | undefined,
+        job_type: formData.type === 'full-time' ? 'full_time' :
+          formData.type === 'part-time' ? 'part_time' :
+            formData.type as 'contract' | 'freelance' | undefined,
+        remote_allowed: formData.remote,
+        location: formData.location,
+        urgent: formData.urgent,
+        status: 'open'
+      });
+
       toast({
         title: "Job Posted Successfully!",
-        description: "Your job posting is now live and will be reviewed within 24 hours.",
+        description: `Your job posting "${assignment.title}" is now live.`,
       });
-      navigate('/dashboard/employer');
-    }, 2000);
+      navigate('/jobs');
+    } catch (error) {
+      toast({
+        title: "Failed to Post Job",
+        description: error instanceof Error ? error.message : "An error occurred while posting the job.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const previewData = {
@@ -127,10 +153,10 @@ const PostJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Post a New Job</h1>
             <p className="text-muted-foreground">Find the perfect candidate for your team</p>
@@ -261,7 +287,7 @@ const PostJob = () => {
                     <Checkbox
                       id="remote"
                       checked={formData.remote}
-                      onCheckedChange={(checked) => updateField('remote', checked)}
+                      onCheckedChange={(checked) => updateField('remote', !!checked)}
                     />
                     <label htmlFor="remote" className="text-sm">Remote work available</label>
                   </div>
@@ -270,7 +296,7 @@ const PostJob = () => {
                     <Checkbox
                       id="urgent"
                       checked={formData.urgent}
-                      onCheckedChange={(checked) => updateField('urgent', checked)}
+                      onCheckedChange={(checked) => updateField('urgent', !!checked)}
                     />
                     <label htmlFor="urgent" className="text-sm">Urgent hiring</label>
                   </div>

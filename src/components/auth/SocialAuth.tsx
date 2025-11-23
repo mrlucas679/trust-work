@@ -24,14 +24,15 @@ export function SocialAuth({ onSuccess, onError, disabled, role }: SocialAuthPro
         try {
             setLoading(provider);
 
+            // Store role in localStorage before OAuth redirect
+            if (role) {
+                localStorage.setItem('pendingUserRole', role);
+            }
+
             const { error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback`,
-                    queryParams: {
-                        // Pass role as query param for profile creation
-                        role: role || 'job_seeker',
-                    },
                     scopes: provider === 'google'
                         ? 'email profile'
                         : undefined, // Apple uses default scopes

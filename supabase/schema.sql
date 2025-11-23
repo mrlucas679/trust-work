@@ -11,8 +11,43 @@ create table if not exists public.profiles (
     role text check (
         role in ('job_seeker', 'employer')
     ) not null default 'job_seeker',
+    phone text,
     -- Public URL to the user's uploaded CV/resume in Supabase Storage
     cv_url text,
+    
+    -- Job Seeker: Personal Information
+    city text,
+    province text,
+    location text,
+    
+    -- Job Seeker: Professional Profile
+    experience_level text,
+    employment_status text,
+    current_job_title text,
+    industry text,
+    years_experience text,
+    
+    -- Job Seeker: Education
+    highest_qualification text,
+    institution text,
+    field_of_study text,
+    year_completed text,
+    
+    -- Job Seeker: Skills & Languages
+    skills text[], -- Array of skills
+    languages text[], -- Array of languages
+    
+    -- Job Seeker: Job Preferences
+    desired_role text,
+    desired_industry text,
+    desired_location text,
+    job_type_preference text,
+    salary_expectation text,
+    availability text,
+    
+    -- Onboarding status
+    onboarding_completed boolean not null default false,
+    
     -- Business verification fields (for employers)
     business_name text,
     business_verified boolean not null default false,
@@ -187,3 +222,448 @@ end $$;
 -- Index for efficient queries
 create index if not exists business_verifications_user_id_idx on public.business_verifications (user_id);
 create index if not exists business_verifications_status_idx on public.business_verifications (status);
+
+-- ============================================================
+-- ASSIGNMENTS TABLE (Job/Gig Postings)
+-- ============================================================
+
+create table if not exists public.assignments (
+    id uuid primary key default gen_random_uuid (),
+    client_id uuid not null references auth.users (id) on delete cascade,
+    title text not null,
+    description text not null,
+    budget_min decimal(10, 2),
+    budget_max decimal(10, 2),
+    budget_type text check (
+        budget_type in ('fixed', 'hourly', 'negotiable')
+    ) default 'fixed',
+    deadline timestamptz,
+    status text check (
+        status in ('draft', 'open', 'in_progress', 'completed', 'cancelled')
+    ) not null default 'open',
+    required_skills text[] not null default '{}',
+    experience_level text check (
+        experience_level in ('entry', 'intermediate', 'expert', 'any')
+    ) default 'any',
+    job_type text check (
+        job_type in ('full_time', 'part_time', 'contract', 'freelance')
+    ) default 'freelance',
+    location text,
+    remote_allowed boolean default true,
+    category text,
+    applications_count integer not null default 0,
+    views_count integer not null default 0,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+-- Trigger for assignments updated_at
+drop trigger if exists set_assignments_updated_at on public.assignments;
+
+create trigger set_assignments_updated_at
+before update on public.assignments
+for each row execute function public.set_updated_at();
+
+-- RLS policies for assignments
+alter table public.assignments enable row level security;
+
+-- Anyone can view open assignments
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'assignments' and policyname = 'Assignments select all open'
+  ) then
+    create policy "Assignments select all open" on public.assignments
+      for select using (status = 'open' or auth.uid() = client_id);
+  end if;
+end $$;
+
+-- Employers can create assignments
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'assignments' and policyname = 'Assignments insert by employers'
+  ) then
+    create policy "Assignments insert by employers" on public.assignments
+      for insert with check (
+        auth.uid() = client_id and 
+        exists (
+          select 1 from public.profiles 
+          where id = auth.uid() and role = 'employer'
+        )
+      );
+  end if;
+end $$;
+
+-- Employers can update their own assignments
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'assignments' and policyname = 'Assignments update own'
+  ) then
+    create policy "Assignments update own" on public.assignments
+      for update using (auth.uid() = client_id) with check (auth.uid() = client_id);
+  end if;
+end $$;
+
+-- Employers can delete their own assignments
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'assignments' and policyname = 'Assignments delete own'
+  ) then
+    create policy "Assignments delete own" on public.assignments
+      for delete using (auth.uid() = client_id);
+  end if;
+end $$;
+
+-- Indexes for efficient queries
+create index if not exists assignments_client_id_idx on public.assignments (client_id);
+create index if not exists assignments_status_idx on public.assignments (status);
+create index if not exists assignments_created_at_idx on public.assignments (created_at desc);
+create index if not exists assignments_category_idx on public.assignments (category);
+create index if not exists assignments_required_skills_idx on public.assignments using gin (required_skills);
+
+-- ============================================================
+-- APPLICATIONS TABLE (Freelancer Applications to Jobs)
+-- ============================================================
+
+create table if not exists public.applications (
+    id uuid primary key default gen_random_uuid (),
+    assignment_id uuid not null references public.assignments (id) on delete cascade,
+    freelancer_id uuid not null references auth.users (id) on delete cascade,
+    proposal text not null,
+    cover_letter text,
+    bid_amount decimal(10, 2),
+    estimated_duration text,
+    estimated_start_date timestamptz,
+    status text check (
+        status in ('pending', 'reviewing', 'accepted', 'rejected', 'withdrawn')
+    ) not null default 'pending',
+    reviewed_at timestamptz,
+    reviewed_by uuid references auth.users (id),
+    rejection_reason text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    -- Ensure one application per freelancer per assignment
+    unique (assignment_id, freelancer_id)
+);
+
+-- Trigger for applications updated_at
+drop trigger if exists set_applications_updated_at on public.applications;
+
+create trigger set_applications_updated_at
+before update on public.applications
+for each row execute function public.set_updated_at();
+
+-- Function to increment applications_count on assignments
+create or replace function public.increment_applications_count()
+returns trigger as $$
+begin
+  update public.assignments
+  set applications_count = applications_count + 1
+  where id = new.assignment_id;
+  return new;
+end;
+$$ language plpgsql;
+
+-- Function to decrement applications_count on assignments
+create or replace function public.decrement_applications_count()
+returns trigger as $$
+begin
+  update public.assignments
+  set applications_count = applications_count - 1
+  where id = old.assignment_id;
+  return old;
+end;
+$$ language plpgsql;
+
+-- Triggers for applications count
+drop trigger if exists increment_applications_count on public.applications;
+drop trigger if exists decrement_applications_count on public.applications;
+
+create trigger increment_applications_count
+after insert on public.applications
+for each row execute function public.increment_applications_count();
+
+create trigger decrement_applications_count
+after delete on public.applications
+for each row execute function public.decrement_applications_count();
+
+-- RLS policies for applications
+alter table public.applications enable row level security;
+
+-- Freelancers can view their own applications
+-- Employers can view applications to their assignments
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'applications' and policyname = 'Applications select own or employer'
+  ) then
+    create policy "Applications select own or employer" on public.applications
+      for select using (
+        auth.uid() = freelancer_id or
+        auth.uid() in (
+          select client_id from public.assignments where id = assignment_id
+        )
+      );
+  end if;
+end $$;
+
+-- Freelancers can submit applications
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'applications' and policyname = 'Applications insert by job seekers'
+  ) then
+    create policy "Applications insert by job seekers" on public.applications
+      for insert with check (
+        auth.uid() = freelancer_id and
+        exists (
+          select 1 from public.profiles 
+          where id = auth.uid() and role = 'job_seeker'
+        )
+      );
+  end if;
+end $$;
+
+-- Freelancers can update their own pending applications
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'applications' and policyname = 'Applications update own pending'
+  ) then
+    create policy "Applications update own pending" on public.applications
+      for update using (
+        auth.uid() = freelancer_id and status = 'pending'
+      ) with check (
+        auth.uid() = freelancer_id
+      );
+  end if;
+end $$;
+
+-- Employers can update applications to their assignments (for review)
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'applications' and policyname = 'Applications update by employer'
+  ) then
+    create policy "Applications update by employer" on public.applications
+      for update using (
+        auth.uid() in (
+          select client_id from public.assignments where id = assignment_id
+        )
+      );
+  end if;
+end $$;
+
+-- Freelancers can delete their own pending applications
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'applications' and policyname = 'Applications delete own pending'
+  ) then
+    create policy "Applications delete own pending" on public.applications
+      for delete using (
+        auth.uid() = freelancer_id and status = 'pending'
+      );
+  end if;
+end $$;
+
+-- Indexes for efficient queries
+create index if not exists applications_assignment_id_idx on public.applications (assignment_id);
+create index if not exists applications_freelancer_id_idx on public.applications (freelancer_id);
+create index if not exists applications_status_idx on public.applications (status);
+create index if not exists applications_created_at_idx on public.applications (created_at desc);
+
+-- ============================================================
+-- CONVERSATIONS TABLE (Messaging)
+-- ============================================================
+
+create table if not exists public.conversations (
+    id uuid primary key default gen_random_uuid (),
+    participant_1_id uuid not null references auth.users (id) on delete cascade,
+    participant_2_id uuid not null references auth.users (id) on delete cascade,
+    assignment_id uuid references public.assignments (id) on delete set null,
+    application_id uuid references public.applications (id) on delete set null,
+    last_message_at timestamptz,
+    last_message_preview text,
+    participant_1_unread_count integer not null default 0,
+    participant_2_unread_count integer not null default 0,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    -- Ensure conversation participants are ordered (smaller UUID first) and unique
+    check (participant_1_id < participant_2_id),
+    unique (participant_1_id, participant_2_id)
+);
+
+-- Trigger for conversations updated_at
+drop trigger if exists set_conversations_updated_at on public.conversations;
+
+create trigger set_conversations_updated_at
+before update on public.conversations
+for each row execute function public.set_updated_at();
+
+-- RLS policies for conversations
+alter table public.conversations enable row level security;
+
+-- Users can view conversations they're part of
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'conversations' and policyname = 'Conversations select own'
+  ) then
+    create policy "Conversations select own" on public.conversations
+      for select using (
+        auth.uid() = participant_1_id or auth.uid() = participant_2_id
+      );
+  end if;
+end $$;
+
+-- Users can create conversations with others
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'conversations' and policyname = 'Conversations insert by participants'
+  ) then
+    create policy "Conversations insert by participants" on public.conversations
+      for insert with check (
+        auth.uid() = participant_1_id or auth.uid() = participant_2_id
+      );
+  end if;
+end $$;
+
+-- Users can update conversations they're part of
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'conversations' and policyname = 'Conversations update own'
+  ) then
+    create policy "Conversations update own" on public.conversations
+      for update using (
+        auth.uid() = participant_1_id or auth.uid() = participant_2_id
+      ) with check (
+        auth.uid() = participant_1_id or auth.uid() = participant_2_id
+      );
+  end if;
+end $$;
+
+-- Indexes for efficient queries
+create index if not exists conversations_participant_1_id_idx on public.conversations (participant_1_id);
+create index if not exists conversations_participant_2_id_idx on public.conversations (participant_2_id);
+create index if not exists conversations_last_message_at_idx on public.conversations (last_message_at desc);
+create index if not exists conversations_assignment_id_idx on public.conversations (assignment_id);
+
+-- ============================================================
+-- MESSAGES TABLE
+-- ============================================================
+
+create table if not exists public.messages (
+    id uuid primary key default gen_random_uuid (),
+    conversation_id uuid not null references public.conversations (id) on delete cascade,
+    sender_id uuid not null references auth.users (id) on delete cascade,
+    content text not null,
+    attachment_url text,
+    attachment_name text,
+    attachment_size integer,
+    read boolean not null default false,
+    read_at timestamptz,
+    edited boolean not null default false,
+    edited_at timestamptz,
+    created_at timestamptz not null default now()
+);
+
+-- Function to update conversation metadata when message is sent
+create or replace function public.update_conversation_on_message()
+returns trigger as $$
+declare
+  other_participant_id uuid;
+begin
+  -- Update last_message_at and preview
+  update public.conversations
+  set 
+    last_message_at = new.created_at,
+    last_message_preview = left(new.content, 100)
+  where id = new.conversation_id;
+  
+  -- Increment unread count for the other participant
+  select case 
+    when participant_1_id = new.sender_id then participant_2_id
+    else participant_1_id
+  end into other_participant_id
+  from public.conversations
+  where id = new.conversation_id;
+  
+  if other_participant_id is not null then
+    update public.conversations
+    set participant_1_unread_count = case 
+        when participant_1_id = other_participant_id then participant_1_unread_count + 1
+        else participant_1_unread_count
+      end,
+      participant_2_unread_count = case 
+        when participant_2_id = other_participant_id then participant_2_unread_count + 1
+        else participant_2_unread_count
+      end
+    where id = new.conversation_id;
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger for updating conversation on new message
+drop trigger if exists update_conversation_on_message on public.messages;
+
+create trigger update_conversation_on_message
+after insert on public.messages
+for each row execute function public.update_conversation_on_message();
+
+-- RLS policies for messages
+alter table public.messages enable row level security;
+
+-- Users can view messages in their conversations
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'messages' and policyname = 'Messages select in own conversations'
+  ) then
+    create policy "Messages select in own conversations" on public.messages
+      for select using (
+        exists (
+          select 1 from public.conversations
+          where id = conversation_id and
+          (auth.uid() = participant_1_id or auth.uid() = participant_2_id)
+        )
+      );
+  end if;
+end $$;
+
+-- Users can send messages in their conversations
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'messages' and policyname = 'Messages insert in own conversations'
+  ) then
+    create policy "Messages insert in own conversations" on public.messages
+      for insert with check (
+        auth.uid() = sender_id and
+        exists (
+          select 1 from public.conversations
+          where id = conversation_id and
+          (auth.uid() = participant_1_id or auth.uid() = participant_2_id)
+        )
+      );
+  end if;
+end $$;
+
+-- Users can update their own messages (for editing)
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'messages' and policyname = 'Messages update own'
+  ) then
+    create policy "Messages update own" on public.messages
+      for update using (auth.uid() = sender_id) with check (auth.uid() = sender_id);
+  end if;
+end $$;
+
+-- Users can delete their own messages
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where tablename = 'messages' and policyname = 'Messages delete own'
+  ) then
+    create policy "Messages delete own" on public.messages
+      for delete using (auth.uid() = sender_id);
+  end if;
+end $$;
+
+-- Indexes for efficient queries
+create index if not exists messages_conversation_id_idx on public.messages (conversation_id);
+create index if not exists messages_sender_id_idx on public.messages (sender_id);
+create index if not exists messages_created_at_idx on public.messages (created_at desc);
+create index if not exists messages_conversation_created_idx on public.messages (conversation_id, created_at desc);

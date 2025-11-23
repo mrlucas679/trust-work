@@ -14,166 +14,249 @@ import {
   Mail,
   Globe,
   Building,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from "lucide-react";
 import VerificationBadge from "@/components/trust/VerificationBadge";
 import RiskIndicator from "@/components/trust/RiskIndicator";
 import CertificationDisplay from "@/components/certifications/CertificationDisplay";
 import { useNavigate, useParams } from "react-router-dom";
-import { mockJobSeeker, mockEmployer } from "@/data/mockData";
 import { useSupabase } from "@/providers/SupabaseProvider";
+
+interface ProfileData {
+  id: string;
+  display_name: string;
+  email: string;
+  phone?: string;
+  location?: string;
+  role: 'job_seeker' | 'employer';
+  skills: string[];
+  cv_url?: string;
+  avatar_url?: string;
+  created_at: string;
+  completedJobs: number;
+  rating: number;
+  portfolio: Array<{ id: string; title: string; client: string; description: string; rating: number; skills: string[] }>;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
-  const isOwnProfile = !userId; // If no userId in params, it's the user's own profile
   const { supabase, user: authUser } = useSupabase();
-  const [cvUrl, setCvUrl] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isOwnProfile = !userId || userId === authUser?.id;
+  const targetUserId = userId || authUser?.id;
+
   const safeCvUrl = (() => {
-    if (!cvUrl) return null;
+    if (!profile?.cv_url) return null;
     try {
-      const u = new URL(cvUrl);
+      const u = new URL(profile.cv_url);
       const isHttp = u.protocol === 'https:' || u.protocol === 'http:';
-      const isSupabasePublic = cvUrl.includes('/storage/v1/object/public/');
-      return isHttp && isSupabasePublic ? cvUrl : null;
+      const isSupabasePublic = profile.cv_url.includes('/storage/v1/object/public/');
+      return isHttp && isSupabasePublic ? profile.cv_url : null;
     } catch {
       return null;
     }
   })();
 
-  // For demo purposes, show job seeker profile
-  const user = mockJobSeeker;
-
   useEffect(() => {
     let mounted = true;
-    async function loadCv() {
-      const targetId = userId ?? authUser?.id;
-      if (!targetId) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('cv_url')
-        .eq('id', targetId)
-        .single();
-      if (!mounted) return;
-      if (!error) setCvUrl(data?.cv_url ?? null);
+    async function loadProfile() {
+      if (!targetUserId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch profile data from Supabase
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUserId)
+          .single();
+
+        if (!mounted) return;
+
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+          setIsLoading(false);
+          return;
+        }
+
+        // Get user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        const email = user?.email || '';
+
+        // TODO: Fetch completed jobs count and rating from assignments/reviews tables
+        // For now, use placeholder values
+        const completedJobs = 0;
+        const rating = 0;
+
+        setProfile({
+          id: profileData.id,
+          display_name: profileData.display_name || email.split('@')[0],
+          email: email,
+          phone: profileData.phone,
+          location: profileData.location || profileData.city,
+          role: profileData.role || 'job_seeker',
+          skills: profileData.skills || [],
+          cv_url: profileData.cv_url,
+          avatar_url: user?.user_metadata?.avatar_url,
+          created_at: profileData.created_at || new Date().toISOString(),
+          completedJobs,
+          rating,
+          portfolio: [], // TODO: Fetch from portfolio table when implemented
+        });
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
     }
-    loadCv();
+
+    loadProfile();
     return () => { mounted = false; };
-  }, [supabase, userId, authUser?.id]);
+  }, [supabase, targetUserId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-muted-foreground mb-4">Profile not found</p>
+        <Button onClick={() => navigate('/')}>Go Home</Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Profile Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="text-2xl font-semibold">
-                  {user.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <Card>
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+              <AvatarImage src={profile.avatar_url} />
+              <AvatarFallback className="text-2xl font-semibold">
+                {profile.display_name.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold">{user.name}</h1>
-                  <VerificationBadge
-                    type={user.verified ? "verified" : "pending"}
-                    details={user.verified ? ["Identity verified", "Skills assessed", "Background checked"] : ["Verification in progress"]}
-                  />
-                  <RiskIndicator level="low" reasons={["Verified identity", "Good reviews", "Consistent work history"]} />
+            <div className="flex-1 w-full min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <h1 className="text-2xl sm:text-3xl font-bold">{profile.display_name}</h1>
+                <VerificationBadge
+                  type="pending"
+                  details={["Verification in progress"]}
+                />
+                <RiskIndicator level="low" reasons={["Profile complete", "Account verified"]} />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-1">
+                  <Mail className="h-4 w-4" />
+                  <span className="truncate">{profile.email}</span>
                 </div>
-
-                <div className="flex items-center gap-4 text-muted-foreground mb-4">
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-1" />
-                    {user.email}
+                {profile.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{profile.location}</span>
                   </div>
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    Cape Town, South Africa
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Joined January 2024
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center">
-                    <Star className="h-5 w-5 text-warning mr-2" />
-                    <span className="font-semibold text-lg">{user.rating}</span>
-                    <span className="text-muted-foreground ml-1">({user.completedJobs} reviews)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Briefcase className="h-5 w-5 text-primary mr-2" />
-                    <span className="font-semibold">{user.completedJobs}</span>
-                    <span className="text-muted-foreground ml-1">completed jobs</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 mt-2">
-                  {isOwnProfile && (
-                    <Button onClick={() => navigate('/profile/edit')}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  )}
-                  <Button variant="outline" disabled={!safeCvUrl} asChild>
-                    {/* If no CV available, keep disabled; when available, link opens in new tab */}
-                    <a href={safeCvUrl ?? undefined} target={safeCvUrl ? "_blank" : undefined} rel={safeCvUrl ? "noreferrer" : undefined}>
-                      View CV
-                    </a>
-                  </Button>
+                )}
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* About */}
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Experienced full-stack developer and digital marketing specialist with a passion for creating
-                  innovative solutions. I help businesses grow through technology and strategic marketing campaigns.
-                  With {user.completedJobs} successfully completed projects, I bring reliability and quality to every task.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Recent Portfolio Work */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Recent Work</CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/portfolio')}>
-                    View All
-                  </Button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                {profile.rating > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-warning" />
+                    <span className="font-semibold text-lg">{profile.rating.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">({profile.completedJobs} reviews)</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">{profile.completedJobs}</span>
+                  <span className="text-sm text-muted-foreground">completed jobs</span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {user.portfolio.slice(0, 2).map((project) => (
-                  <div key={project.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                {isOwnProfile && (
+                  <Button onClick={() => navigate('/profile/edit')} className="w-full sm:w-auto">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+                <Button variant="outline" disabled={!safeCvUrl} asChild className="w-full sm:w-auto">
+                  {/* If no CV available, keep disabled; when available, link opens in new tab */}
+                  <a href={safeCvUrl ?? undefined} target={safeCvUrl ? "_blank" : undefined} rel={safeCvUrl ? "noreferrer" : undefined}>
+                    View CV
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* About */}
+          <Card>
+            <CardHeader>
+              <CardTitle>About</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                {profile.role === 'job_seeker'
+                  ? `Experienced professional with ${profile.completedJobs} successfully completed projects. Browse my skills and portfolio below.`
+                  : `Employer looking to hire talented professionals. ${profile.completedJobs} projects posted.`
+                }
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Recent Portfolio Work */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Work</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => navigate('/portfolio')}>
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {profile.portfolio.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No portfolio items yet</p>
+              ) : (
+                profile.portfolio.slice(0, 2).map((project) => (
+                  <div key={project.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                      <div className="flex-1 min-w-0">
                         <h3 className="font-semibold">{project.title}</h3>
                         <p className="text-sm text-muted-foreground">{project.client}</p>
                       </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-warning mr-1" />
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Star className="h-4 w-4 text-warning" />
                         <span className="font-medium">{project.rating}</span>
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {project.skills.slice(0, 3).map((skill) => (
                         <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
@@ -181,73 +264,77 @@ const Profile = () => {
                       ))}
                     </div>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Certifications */}
-            <CertificationDisplay isOwnProfile={isOwnProfile} />
-          </div>
+          {/* Certifications */}
+          <CertificationDisplay isOwnProfile={isOwnProfile} />
+        </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Skills */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="h-5 w-5 mr-2" />
-                  Skills
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {user.skills.map((skill) => (
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Skills */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Skills
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No skills added yet</p>
+                ) : (
+                  profile.skills.map((skill) => (
                     <Badge key={skill} variant="outline" className="border-verified text-verified">
                       {skill}
                     </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Achievement Stats */}
+          {/* Achievement Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Achievements</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Completion Rate</span>
+                <span className="font-semibold">100%</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">On-Time Delivery</span>
+                <span className="font-semibold">98%</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Response Time</span>
+                <span className="font-semibold">&lt; 2 hours</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Repeat Clients</span>
+                <span className="font-semibold">75%</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Actions */}
+          {!isOwnProfile && (
             <Card>
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Completion Rate</span>
-                  <span className="font-semibold">100%</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">On-Time Delivery</span>
-                  <span className="font-semibold">98%</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Response Time</span>
-                  <span className="font-semibold">&lt; 2 hours</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Repeat Clients</span>
-                  <span className="font-semibold">75%</span>
-                </div>
+              <CardContent className="p-4 space-y-3">
+                <Button className="w-full h-11">Send Message</Button>
+                <Button variant="outline" className="w-full h-11">Invite to Job</Button>
               </CardContent>
             </Card>
-
-            {/* Contact Actions */}
-            {!isOwnProfile && (
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <Button className="w-full">Send Message</Button>
-                  <Button variant="outline" className="w-full">Invite to Job</Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>

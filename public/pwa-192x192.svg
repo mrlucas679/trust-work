@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
+    <rect width="192" height="192" fill="#3B82F6" rx="24"/>
+    <path d="M96 48L136 88L96 128L56 88L96 48Z" fill="white"/>
+    <path d="M96 72L120 96L96 120L72 96L96 72Z" fill="#1D4ED8"/>
+    <circle cx="96" cy="96" r="8" fill="white"/>
+    <text x="96" y="165" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">TrustWork</text>
+</svg>

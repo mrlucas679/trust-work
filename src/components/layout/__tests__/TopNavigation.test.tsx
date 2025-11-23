@@ -28,8 +28,11 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock window.location.reload
-delete (window as { location?: typeof window.location }).location;
-window.location = { reload: jest.fn() } as unknown as Location;
+const mockReload = jest.fn();
+Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { reload: mockReload }
+});
 
 const renderWithRouter = (ui: React.ReactElement) => {
     return render(<BrowserRouter>{ui}</BrowserRouter>);
@@ -38,7 +41,7 @@ const renderWithRouter = (ui: React.ReactElement) => {
 describe('TopNavigation', () => {
     beforeEach(() => {
         mockNavigate.mockClear();
-        (window.location.reload as jest.Mock).mockClear();
+        mockReload.mockClear();
     });
 
     it('should render header element with correct attributes', () => {
@@ -80,7 +83,7 @@ describe('TopNavigation', () => {
         fireEvent.click(logoButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard/job-seeker');
-        expect(window.location.reload).toHaveBeenCalledTimes(1);
+        expect(mockReload).toHaveBeenCalledTimes(1);
     });
 
     it('should render InlineSearch component', () => {

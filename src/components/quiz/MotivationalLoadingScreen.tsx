@@ -89,7 +89,7 @@ export const MotivationalLoadingScreen = ({
                             <Loader2 className="h-10 w-10 text-primary animate-spin" />
                         </div>
                         <h2 className="text-2xl font-bold text-foreground">
-                            Preparing Your Assignment
+                            Preparing Your Assessment
                         </h2>
                         {skillName && levelName && (
                             <p className="text-muted-foreground">

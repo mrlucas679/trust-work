@@ -70,6 +70,16 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Z-Index Scale - Centralized z-index management */
+    --z-base: 1;
+    --z-sidebar-desktop: 10;
+    --z-overlay: 20;
+    --z-sidebar-mobile: 30;
+    --z-navbar: 50;
+    --z-modal: 100;
+    --z-toast: 200;
+    --z-skip-link: 9999;
   }
 
   .dark {
@@ -161,6 +171,36 @@ All colors MUST be HSL.
   html {
     font-size: clamp(14px, 1vw + 0.5rem, 18px);
   }
+
+  /* Global focus indicators for accessibility */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Ensure links are keyboard accessible */
+  a {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+}
+
+/* Fix sidebar positioning below navbar */
+@layer components {
+
+  /* The spacer div that creates layout space for desktop sidebar */
+  .sidebar-with-navbar~div[data-sidebar="sidebar"]+div {
+    @apply md:h-[calc(100vh-4rem)] md:mt-16;
+  }
+
+  /* The actual fixed sidebar positioned below navbar */
+  .sidebar-with-navbar~div[data-sidebar="sidebar"] {
+    @apply md:top-16 md:h-[calc(100vh-4rem)];
+  }
 }
 
 /* Custom Animation Enhancements */
@@ -183,5 +223,57 @@ All colors MUST be HSL.
 
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  /* Better touch targets for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Consistent card hover states */
+  .card-interactive {
+    @apply transition-all duration-200 hover:shadow-lg hover:border-primary/20 cursor-pointer;
+  }
+
+  /* Better focus states for accessibility */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+
+  /* Body scroll lock for mobile sidebar */
+  body.sidebar-open {
+    @apply overflow-hidden;
+    padding-right: var(--scrollbar-width, 0);
+  }
+}
+
+/* Typography improvements */
+@layer base {
+  h1 {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+
+  h5 {
+    @apply text-base sm:text-lg font-semibold;
+  }
+
+  h6 {
+    @apply text-sm sm:text-base font-semibold;
+  }
+
+  p {
+    @apply leading-relaxed;
   }
 }

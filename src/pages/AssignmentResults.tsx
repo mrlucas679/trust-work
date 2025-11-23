@@ -14,7 +14,8 @@ import {
     RefreshCw,
     Ticket,
     Sparkles,
-    AlertCircle
+    AlertCircle,
+    Award
 } from 'lucide-react';
 import { SKILL_DISPLAY_NAMES, LEVEL_DISPLAY_NAMES, LEVEL_REQUIREMENTS, SkillCategory, AssignmentLevel, Question } from '@/types/assignments';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -242,6 +243,21 @@ const AssignmentResults = () => {
                             <Separator />
 
                             <div className="flex flex-col gap-3">
+                                {/* View Certificate - ONLY for Expert level */}
+                                {level === 'expert' && (
+                                    <Button
+                                        size="lg"
+                                        className="w-full bg-verified hover:bg-verified/90"
+                                        onClick={() => {
+                                            // Generate assignment ID based on skill and level
+                                            const assignmentId = `${skill}_${level}_attempt_1`;
+                                            navigate(`/assessment/${assignmentId}/certificate`);
+                                        }}
+                                    >
+                                        <Award className="h-5 w-5 mr-2" />
+                                        View Your Certificate
+                                    </Button>
+                                )}
                                 <Button
                                     size="lg"
                                     className="w-full"

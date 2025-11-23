@@ -16,34 +16,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-
-const SIDEBAR_COOKIE_NAME = "sidebar:state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
-
-type SidebarContext = {
-  state: "expanded" | "collapsed"
-  open: boolean
-  setOpen: (open: boolean) => void
-  openMobile: boolean
-  setOpenMobile: (open: boolean) => void
-  isMobile: boolean
-  toggleSidebar: () => void
-}
-
-const SidebarContext = React.createContext<SidebarContext | null>(null)
-
-function useSidebar() {
-  const context = React.useContext(SidebarContext)
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
-  }
-
-  return context
-}
+import {
+  SidebarContext,
+  useSidebar,
+  SIDEBAR_COOKIE_NAME,
+  SIDEBAR_COOKIE_MAX_AGE,
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_MOBILE,
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_KEYBOARD_SHORTCUT,
+} from "./use-sidebar"
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -74,40 +56,61 @@ const SidebarProvider = React.forwardRef<
     const open = openProp ?? _open
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === "function" ? value(open) : value
-        if (setOpenProp) {
-          setOpenProp(openState)
-        } else {
-          _setOpen(openState)
-        }
+        try {
+          const openState = typeof value === "function" ? value(open) : value
+          if (setOpenProp) {
+            setOpenProp(openState)
+          } else {
+            _setOpen(openState)
+          }
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+          // This sets the cookie to keep the sidebar state.
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        } catch (error) {
+          console.error('Sidebar: Error updating state or cookie', error)
+        }
       },
       [setOpenProp, open]
     )
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+      try {
+        return isMobile
+          ? setOpenMobile((open) => !open)
+          : setOpen((open) => !open)
+      } catch (error) {
+        console.error('Sidebar: Error toggling sidebar', error)
+      }
     }, [isMobile, setOpen, setOpenMobile])
 
     // Adds a keyboard shortcut to toggle the sidebar.
+    // Defensive: Only add listener if window is available
     React.useEffect(() => {
+      if (typeof window === 'undefined') return
+
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (
-          event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
-        ) {
-          event.preventDefault()
-          toggleSidebar()
+        try {
+          if (
+            event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+            (event.metaKey || event.ctrlKey)
+          ) {
+            event.preventDefault()
+            toggleSidebar()
+          }
+        } catch (error) {
+          console.error('Sidebar: Error handling keyboard shortcut', error)
         }
       }
 
       window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
+      return () => {
+        try {
+          window.removeEventListener("keydown", handleKeyDown)
+        } catch (error) {
+          console.error('Sidebar: Error removing keyboard listener', error)
+        }
+      }
     }, [toggleSidebar])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
@@ -232,7 +235,7 @@ const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
+            "duration-200 fixed inset-y-0 flex h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -242,6 +245,7 @@ const Sidebar = React.forwardRef<
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
             className
           )}
+          style={{ zIndex: 'var(--z-sidebar-desktop)' }}
           {...props}
         >
           <div
@@ -757,5 +761,4 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useSidebar,
 }
