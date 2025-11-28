@@ -1,3 +1,8 @@
+import { config } from 'dotenv';
+
+// Load environment variables from .env file for integration tests
+config();
+
 export default {
     // Jest configurations
     preset: 'ts-jest',
@@ -7,14 +12,26 @@ export default {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     },
+    // Use REAL environment variables from .env file
+    globals: {
+        'import.meta': {
+            env: {
+                DEV: false,
+                PROD: false,
+                MODE: 'test',
+                VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || 'https://test.supabase.co',
+                VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || 'test-key',
+            }
+        }
+    },
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', {
             tsconfig: {
                 jsx: 'react-jsx',
                 esModuleInterop: true,
                 allowSyntheticDefaultImports: true,
-                module: 'ESNext',
-                moduleResolution: 'bundler',
+                module: 'CommonJS',
+                moduleResolution: 'node',
                 resolveJsonModule: true,
                 isolatedModules: true,
                 skipLibCheck: true,
@@ -30,6 +47,9 @@ export default {
             }
         }]
     },
+    transformIgnorePatterns: [
+        'node_modules/(?!(.*\\.mjs$))'
+    ],
     // Coverage configuration
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}',

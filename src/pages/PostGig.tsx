@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Quiz, QuizBuilder } from "@/components/quiz/QuizBuilder";
+import { SkillTestSelector } from "@/components/skill-tests";
+import type { SkillTestRequirement, SkillTestCategory } from "@/types/skill-tests";
 
 
 interface GigForm {
@@ -26,12 +28,14 @@ interface GigForm {
   remote: boolean;
   experienceLevel: string;
   postType: 'gig' | 'job';
+  category?: SkillTestCategory;
   companyDetails?: {
     companySize: string;
     industry: string;
     location: string;
   };
   quiz: Quiz;
+  skillTest: SkillTestRequirement;
 }
 const PostGig = () => {
   const navigate = useNavigate();
@@ -55,6 +59,7 @@ const PostGig = () => {
     remote: true,
     experienceLevel: "",
     postType: "gig",
+    category: undefined,
     companyDetails: {
       companySize: "",
       industry: "",
@@ -66,6 +71,12 @@ const PostGig = () => {
       passingScore: 70,
       timeLimit: 30,
       questions: []
+    },
+    skillTest: {
+      required: false,
+      templateId: null,
+      difficulty: null,
+      passingScore: 70
     }
   });
 
@@ -133,10 +144,10 @@ const PostGig = () => {
     ...formData,
     budgetDisplay: formData.budgetType === 'fixed' ? `${formData.budget} (Fixed Price)` : `${formData.budget}/hour`
   };
-  return <div className="min-h-screen bg-muted/20 p-6">
-    <div className="max-w-4xl mx-auto">
+  return <div className="bg-muted/20 p-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Post a New Gig</h1>
           <p className="text-muted-foreground">Find skilled freelancers for your project</p>
@@ -311,6 +322,33 @@ const PostGig = () => {
                 </Select>
               </div>
 
+              <div>
+                <label className="text-sm font-medium mb-2 block">Skill Category</label>
+                <Select 
+                  value={formData.category || ''} 
+                  onValueChange={value => updateField('category', value as SkillTestCategory)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="web_development">Web Development</SelectItem>
+                    <SelectItem value="mobile_development">Mobile Development</SelectItem>
+                    <SelectItem value="backend_development">Backend Development</SelectItem>
+                    <SelectItem value="ui_ux_design">UI/UX Design</SelectItem>
+                    <SelectItem value="graphic_design">Graphic Design</SelectItem>
+                    <SelectItem value="data_science">Data Science & Analytics</SelectItem>
+                    <SelectItem value="devops">DevOps & Cloud</SelectItem>
+                    <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
+                    <SelectItem value="project_management">Project Management</SelectItem>
+                    <SelectItem value="digital_marketing">Digital Marketing</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select a category to enable skill testing for applicants
+                </p>
+              </div>
+
               <div className="flex gap-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="remote" checked={formData.remote} onCheckedChange={checked => updateField('remote', checked)} />
@@ -399,11 +437,29 @@ const PostGig = () => {
         </TabsContent>
 
         <TabsContent value="quiz" className="space-y-6">
+          {/* New Skill Test System */}
+          <SkillTestSelector
+            category={formData.category}
+            value={formData.skillTest}
+            onChange={(skillTest) => updateField('skillTest', skillTest)}
+            disabled={!formData.category}
+          />
+          {!formData.category && (
+            <Card>
+              <CardContent className="py-4">
+                <p className="text-sm text-muted-foreground">
+                  To enable skill testing, please select a skill category in the Gig Details tab
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Legacy Quiz System (can be removed later) */}
           <Card className="animate-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <span>Assessment Quiz</span>
-                <Badge variant="outline" className="ml-2 text-xs">Optional</Badge>
+                <span>Legacy Assessment Quiz</span>
+                <Badge variant="outline" className="ml-2 text-xs">Deprecated</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -565,6 +621,23 @@ const PostGig = () => {
                     </Badge>)}
                   </div>
                 </div>}
+
+                {/* Skill Test Preview */}
+                {formData.skillTest.required && (
+                  <div className="mt-4 p-4 border rounded-lg border-primary/30 bg-primary/5">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                      Skill Test Required
+                    </h4>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>Difficulty: <Badge variant="outline" className="ml-1 capitalize">{formData.skillTest.difficulty}</Badge></p>
+                      <p>Passing Score: <span className="font-medium">{formData.skillTest.passingScore}%</span></p>
+                      <p className="mt-2 text-xs">
+                        💡 Applicants must pass this test before submitting proposals
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Post Gig Actions */}

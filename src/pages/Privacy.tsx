@@ -9,8 +9,8 @@ import { Shield, Download, Calendar, Lock, Eye, Database } from "lucide-react";
 const Privacy = () => {
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
-        <div className="mb-8">
+      <div className="space-y-8">
+        <div>
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-verified" />
             <h1 className="text-3xl font-bold">Privacy Policy</h1>

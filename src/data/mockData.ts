@@ -54,10 +54,12 @@ export interface JobSeekerProfile extends User {
 }
 
 export interface EmployerProfile extends User {
+  company?: string; // Alias for companyName (for backward compatibility)
   companyName: string;
   registrationNumber: string;
   website: string;
   logo?: string;
+  rating?: number;
   verificationStatus: 'pending' | 'verified' | 'flagged';
   riskFlags: string[];
 }
@@ -72,20 +74,8 @@ export interface PortfolioItem {
   skills: string[];
 }
 
-export interface Assessment {
-  id: string;
-  title: string;
-  description: string;
-  questions: Question[];
-  badge: string;
-}
-
-export interface Question {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-}
+// Assessment types and data removed - now using real skill testing system
+// See: AssignmentDashboard, AssignmentQuiz, skill_tests table
 
 // Mock Jobs Data
 export const mockJobs: Job[] = [
@@ -247,6 +237,7 @@ export const mockJobSeeker: JobSeekerProfile = {
   email: 'sarah@email.com',
   role: 'job_seeker',
   verified: true,
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
   skills: ['React', 'TypeScript', 'Node.js', 'Digital Marketing'],
   completedJobs: 12,
   rating: 4.8,
@@ -281,6 +272,8 @@ export const mockEmployer: EmployerProfile = {
   email: 'john@techcorp.com',
   role: 'employer',
   verified: true,
+  rating: 4.9,
+  company: 'TechCorp Solutions', // Added for test compatibility
   companyName: 'TechCorp Solutions',
   registrationNumber: 'REG123456789',
   website: 'https://techcorp.co.za',
@@ -302,83 +295,68 @@ export const mockFlaggedEmployer: EmployerProfile = {
 };
 
 // Mock Assessments
-export const mockAssessments: Assessment[] = [
+// Mock Reviews Data
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  author: string;
+  date: string;
+}
+
+export const mockReviews: Review[] = [
   {
     id: '1',
-    title: 'Excel Basics',
-    description: 'Test your knowledge of Microsoft Excel fundamentals',
-    badge: 'Excel Certified',
-    questions: [
-      {
-        id: '1',
-        question: 'What function calculates the sum of a range of cells?',
-        options: ['SUM()', 'ADD()', 'TOTAL()', 'CALC()'],
-        correctAnswer: 0
-      },
-      {
-        id: '2',
-        question: 'Which key combination saves a file in Excel?',
-        options: ['Ctrl+A', 'Ctrl+S', 'Ctrl+C', 'Ctrl+V'],
-        correctAnswer: 1
-      },
-      {
-        id: '3',
-        question: 'What does VLOOKUP function do?',
-        options: ['Validates data', 'Looks up values vertically', 'Creates variables', 'Locks cells'],
-        correctAnswer: 1
-      }
-    ]
+    rating: 5,
+    comment: 'Excellent work, highly professional and delivered on time!',
+    author: 'John Smith',
+    date: '2024-01-15'
   },
   {
     id: '2',
-    title: 'Digital Marketing',
-    description: 'Assess your digital marketing knowledge and skills',
-    badge: 'Marketing Professional',
-    questions: [
-      {
-        id: '1',
-        question: 'What does CTR stand for in digital marketing?',
-        options: ['Click Through Rate', 'Cost To Reach', 'Customer Target Rating', 'Content Type Ratio'],
-        correctAnswer: 0
-      },
-      {
-        id: '2',
-        question: 'Which platform is best for B2B marketing?',
-        options: ['Instagram', 'TikTok', 'LinkedIn', 'Snapchat'],
-        correctAnswer: 2
-      },
-      {
-        id: '3',
-        question: 'What is SEO?',
-        options: ['Social Engine Optimization', 'Search Engine Optimization', 'Sales Enhancement Online', 'System Error Override'],
-        correctAnswer: 1
-      }
-    ]
+    rating: 4,
+    comment: 'Great communication and quality work.',
+    author: 'Sarah Johnson',
+    date: '2024-01-10'
   },
   {
     id: '3',
-    title: 'Customer Service',
-    description: 'Evaluate your customer service skills and approach',
-    badge: 'Service Excellence',
-    questions: [
-      {
-        id: '1',
-        question: 'What is the most important aspect of customer service?',
-        options: ['Speed', 'Active listening', 'Product knowledge', 'Following scripts'],
-        correctAnswer: 1
-      },
-      {
-        id: '2',
-        question: 'How should you handle an angry customer?',
-        options: ['Argue back', 'Transfer immediately', 'Stay calm and empathize', 'Hang up'],
-        correctAnswer: 2
-      },
-      {
-        id: '3',
-        question: 'What does CRM stand for?',
-        options: ['Customer Relationship Management', 'Customer Request Manager', 'Call Response Method', 'Client Review Metrics'],
-        correctAnswer: 0
-      }
-    ]
+    rating: 5,
+    comment: 'Outstanding results, exceeded expectations!',
+    author: 'Mike Brown',
+    date: '2024-01-05'
+  }
+];
+
+// Mock Certifications Data
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  type: 'skill' | 'education' | 'professional';
+}
+
+export const mockCertifications: Certification[] = [
+  {
+    id: '1',
+    name: 'React Developer Certification',
+    issuer: 'Meta',
+    date: '2023-12-01',
+    type: 'skill'
+  },
+  {
+    id: '2',
+    name: 'Bachelor of Computer Science',
+    issuer: 'University of Cape Town',
+    date: '2022-06-15',
+    type: 'education'
+  },
+  {
+    id: '3',
+    name: 'Certified Digital Marketing Professional',
+    issuer: 'Digital Marketing Institute',
+    date: '2023-09-20',
+    type: 'professional'
   }
 ];

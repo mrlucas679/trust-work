@@ -1,0 +1,44 @@
+{
+  "recommendations": [
+    // Essential Development
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "usernamehw.errorlens",
+
+    // TypeScript
+    "yoavbls.pretty-ts-errors",
+
+    // Testing
+    "firsttris.vscode-jest-runner",
+    "ms-playwright.playwright",
+    "ortoni.ortoni",
+    "nitayneeman.playwright-snippets",
+
+    // Utilities
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "wix.vscode-import-cost",
+
+    // Git
+    "eamodio.gitlens",
+
+    // Build Tools
+    "antfu.vite",
+
+    // Database
+    "ckolkman.vscode-postgres",
+
+    // MCP & AI
+    "saoudrizwan.claude-dev",
+    "automatalabs.copilot-mcp",
+    "semanticworkbenchteam.mcp-server-vscode",
+    "m1self.mcp-client",
+
+    // Optional Free AI
+    "rjmacarthy.twinny",
+    "10nates.ollama-autocoder",
+    "sourcegraph.cody-ai"
+  ]
+}

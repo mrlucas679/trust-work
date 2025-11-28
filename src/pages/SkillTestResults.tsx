@@ -1,48 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Trophy, 
-  Award, 
-  Star, 
-  Download, 
+import {
+  Trophy,
+  Award,
+  Star,
+  Download,
   Share2,
   CheckCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from "lucide-react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { mockAssessments } from "@/data/mockData";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getSkillTestResult, getSkillTestById } from "@/lib/api/skill-tests";
+import type { SkillTest, SkillTestResult } from "@/lib/api/skill-tests";
 
 const AssessmentResults = () => {
   const navigate = useNavigate();
-  const { assessmentId } = useParams();
-  const location = useLocation();
-  
-  const assessment = mockAssessments.find(a => a.id === assessmentId);
-  const { score, correctAnswers, totalQuestions } = location.state || { 
-    score: 85, 
-    correctAnswers: 2, 
-    totalQuestions: 3 
-  };
+  const { resultId } = useParams();
 
-  if (!assessment) {
-    return <div>Assessment not found</div>;
+  const [result, setResult] = useState<SkillTestResult | null>(null);
+  const [test, setTest] = useState<SkillTest | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!resultId) return;
+
+      try {
+        const resultData = await getSkillTestResult(resultId);
+        if (resultData) {
+          setResult(resultData);
+          const testData = await getSkillTestById(resultData.skill_test_id);
+          setTest(testData);
+        }
+      } catch (error) {
+        console.error('Error fetching result:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [resultId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  const isPassing = score >= 70;
+  if (!result || !test) {
+    return (
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground mb-4">Result not found</p>
+            <Button onClick={() => navigate('/skill-tests')}>Back to Tests</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const score = result.score;
+  const isPassing = result.passed;
+  const totalQuestions = test.questions.length;
   const getScoreColor = () => {
     if (score >= 90) return "text-verified";
-    if (score >= 70) return "text-primary";
+    if (score >= test.passing_score) return "text-primary";
     return "text-flagged";
   };
 
   const getPerformanceLevel = () => {
     if (score >= 90) return "Excellent";
     if (score >= 80) return "Very Good";
-    if (score >= 70) return "Good";
+    if (score >= test.passing_score) return "Good";
     return "Needs Improvement";
   };
+
+  // Calculate correct answers from result
+  const correctAnswers = test.questions.filter(q => {
+    const userAnswer = result.answers?.[q.id];
+    return userAnswer === q.correct_answer;
+  }).length;
 
   return (
     <div className="min-h-screen bg-muted/20 p-6">
@@ -60,12 +104,12 @@ const AssessmentResults = () => {
                   <XCircle className="h-10 w-10 text-flagged" />
                 </div>
               )}
-              
+
               <h1 className="text-3xl font-bold mb-2">
                 {isPassing ? 'Congratulations!' : 'Assessment Complete'}
               </h1>
               <p className="text-muted-foreground">
-                {isPassing 
+                {isPassing
                   ? 'You have successfully completed the assessment and earned your badge!'
                   : 'You can retake this assessment to improve your score.'
                 }
@@ -96,7 +140,7 @@ const AssessmentResults = () => {
             {isPassing && (
               <Badge className="bg-verified text-white text-lg py-2 px-4">
                 <Award className="h-5 w-5 mr-2" />
-                {assessment.badge} - Badge Earned!
+                {test.category || 'Skill Test'} - Badge Earned!
               </Badge>
             )}
           </CardContent>
@@ -109,12 +153,12 @@ const AssessmentResults = () => {
               <CardTitle>Performance Breakdown</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {assessment.questions.map((question, index) => {
-                const userAnswer = index < correctAnswers ? question.correctAnswer : (question.correctAnswer + 1) % question.options.length;
-                const isCorrect = userAnswer === question.correctAnswer;
-                
+              {test.questions.map((question, index) => {
+                const userAnswer = result.answers?.[question.id];
+                const isCorrect = userAnswer === question.correct_answer;
+
                 return (
-                  <div key={index} className="border rounded-lg p-4">
+                  <div key={question.id} className="border rounded-lg p-4">
                     <div className="flex items-start gap-3 mb-2">
                       {isCorrect ? (
                         <CheckCircle className="h-5 w-5 text-verified mt-0.5" />
@@ -129,17 +173,20 @@ const AssessmentResults = () => {
                           <div className="text-sm">
                             <span className="text-muted-foreground">Your answer: </span>
                             <span className={isCorrect ? "text-verified" : "text-flagged"}>
-                              {question.options[userAnswer]}
+                              {userAnswer || 'Not answered'}
                             </span>
                           </div>
-                          {!isCorrect && (
+                          {!isCorrect && question.correct_answer && (
                             <div className="text-sm">
                               <span className="text-muted-foreground">Correct answer: </span>
                               <span className="text-verified">
-                                {question.options[question.correctAnswer]}
+                                {question.correct_answer}
                               </span>
                             </div>
                           )}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Points: {question.points}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -163,16 +210,16 @@ const AssessmentResults = () => {
                 <CardContent>
                   <div className="text-center p-6 border rounded-lg bg-verified/5 border-verified">
                     <Award className="h-12 w-12 text-verified mx-auto mb-3" />
-                    <div className="font-semibold text-lg mb-1">{assessment.badge}</div>
+                    <div className="font-semibold text-lg mb-1">{test.title}</div>
                     <div className="text-sm text-muted-foreground mb-4">
-                      Earned on {new Date().toLocaleDateString()}
+                      Earned on {new Date(result.completed_at).toLocaleDateString()}
                     </div>
                     <div className="flex gap-2 justify-center">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" disabled>
                         <Download className="h-4 w-4 mr-2" />
                         Download Certificate
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" disabled>
                         <Share2 className="h-4 w-4 mr-2" />
                         Share
                       </Button>
@@ -188,39 +235,39 @@ const AssessmentResults = () => {
                 <CardTitle>What's Next?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  className="w-full" 
-                  onClick={() => navigate('/assessments')}
-                >
-                  <Star className="h-4 w-4 mr-2" />
-                  Take More Assessments
-                </Button>
-                
-                <Button 
-                  variant="outline" 
+                <Button
                   className="w-full"
-                  onClick={() => navigate('/portfolio')}
+                  onClick={() => navigate('/applications')}
                 >
-                  Update Your Portfolio
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  View My Applications
                 </Button>
-                
-                {!isPassing && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => navigate(`/assessment/${assessmentId}`)}
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Retake Assessment
-                  </Button>
-                )}
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => navigate('/jobs')}
                 >
-                  Browse Jobs
+                  Browse More Jobs
+                </Button>
+
+                {!isPassing && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate(`/skill-test/${test.id}`)}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Retake Test
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/skill-tests')}
+                >
+                  Back to Skill Tests
                 </Button>
               </CardContent>
             </Card>

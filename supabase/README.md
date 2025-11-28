@@ -18,15 +18,63 @@ Follow these steps to get the database and policies in place and the app connect
 
 ## 2.5) Create Storage bucket for CVs
 
+**Important**: This step is required for CV upload functionality to work.
+
+### Option A: Using Supabase Dashboard (Recommended)
+
 - In Supabase dashboard, go to Storage > Create bucket
-- Name: `resumes`
+- Name: `resumes` (must be exactly this)
 - Public bucket: Enabled (OK for MVP; you can lock down and proxy later)
-- CORS: Add your local/dev origins (e.g., `http://localhost:5173`) if needed
+- File size limit: 10 MB
+- Allowed MIME types: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- CORS: Add your local/dev origins (e.g., `http://localhost:8080` - see vite.config.ts) if needed
+
+### Option B: Using SQL (Advanced)
+
+- Run the script in `supabase/storage-setup.sql` in the SQL Editor
+- This creates all storage buckets (resumes, avatars, company-logos, attachments) and sets up RLS policies
+
+### S3-Compatible Storage Access
+
+Supabase Storage supports the S3 protocol for advanced use cases:
+
+**Connection Details:**
+
+- Endpoint: `https://sojjizqahgphybdijqaj.storage.supabase.co/storage/v1/s3`
+- Region: `eu-north-1`
+- Protocol: S3 (AWS S3 compatible)
+
+**Environment Variables:**
+
+```bash
+VITE_SUPABASE_S3_ENDPOINT=https://sojjizqahgphybdijqaj.storage.supabase.co/storage/v1/s3
+VITE_SUPABASE_S3_REGION=eu-north-1
+VITE_SUPABASE_STORAGE_BUCKET=resumes
+```
+
+### Documentation
+
+For comprehensive setup instructions and S3 usage:
+
+- **`S3_STORAGE_GUIDE.md`** - Complete S3 storage guide with examples
+- **`S3_QUICK_REFERENCE.md`** - Quick reference for common operations
+- **`supabase/storage-setup.sql`** - SQL script to create all buckets
+
+**Storage Buckets:**
+
+| Bucket | Purpose | Size Limit |
+|--------|---------|-----------|
+| resumes | User CVs | 10MB |
+| avatars | Profile pictures | 5MB |
+| company-logos | Company branding | 3MB |
+| attachments | Job attachments | 20MB |
 
 Notes:
 
 - Our app uploads files to `resumes/{userId}/cv.pdf` style paths.
 - We store the public URL in `profiles.cv_url` and validate it client-side (http/https + Supabase public storage path) for safety.
+- If you see "bucket not found" errors when uploading CVs, this bucket is missing.
+- For S3 protocol access, use service_role key (backend only - never expose in client code)
 
 ## 3) Configure environment variables (Vite)
 

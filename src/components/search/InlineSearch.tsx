@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, X, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { SearchResultsDropdown } from '@/components/search/SearchResultsDropdown';
 import { cn } from '@/lib/utils';
+import { performUniversalSearch } from '@/lib/universalSearch';
+import { useSupabase } from '@/providers/SupabaseProvider';
 
 export interface SearchResults {
     gigs: Array<{
@@ -37,16 +39,78 @@ export interface SearchResults {
 }
 
 export const InlineSearch = () => {
+    const { user } = useSupabase();
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [results, setResults] = useState<SearchResults | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
 
-    // Debounce the search query
-    const debouncedQuery = useDebounce(query, 300);
+    const debouncedQuery = useDebounce(query, 400);
 
-    // Perform search when debounced query changes
+    const performSearch = useCallback(async (searchQuery: string) => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const response = await performUniversalSearch({
+                query: searchQuery,
+                categories: ['all'],
+                userId: user?.id || 'anonymous',
+                limit: 10,
+            });
+
+            if (!response.success || !response.data) {
+                setError(response.error?.message || 'Search failed');
+                setResults(null);
+                setIsOpen(false);
+                return;
+            }
+
+            const transformedResults: SearchResults = {
+                gigs: response.data.gigs.map((gig) => ({
+                    id: gig.id,
+                    title: gig.title,
+                    description: gig.snippet,
+                    budget: gig.budget,
+                    clientName: gig.clientName,
+                    postedDate: gig.postedAt,
+                })),
+                companies: response.data.companies.map((company) => ({
+                    id: company.id,
+                    name: company.name,
+                    industry: company.industry,
+                    location: company.location,
+                    gigCount: company.jobCount + company.gigCount,
+                })),
+                workers: response.data.freelancers.map((freelancer) => ({
+                    id: freelancer.id,
+                    name: freelancer.fullName,
+                    title: freelancer.title,
+                    rating: freelancer.rating,
+                    skills: freelancer.skills,
+                    certifications: [],
+                })),
+                skills: response.data.skills.map((skill) => ({
+                    id: skill.id,
+                    name: skill.name,
+                    workerCount: skill.freelancerCount,
+                    gigCount: skill.jobCount,
+                })),
+            };
+
+            setResults(transformedResults);
+            setIsOpen(true);
+        } catch (error) {
+            console.error('Search error:', error);
+            setError('An unexpected error occurred. Please try again.');
+            setResults(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [user?.id]);
+
     useEffect(() => {
         if (debouncedQuery.length >= 2) {
             performSearch(debouncedQuery);
@@ -54,9 +118,8 @@ export const InlineSearch = () => {
             setResults(null);
             setIsOpen(false);
         }
-    }, [debouncedQuery]);
+    }, [debouncedQuery, performSearch]);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -68,75 +131,11 @@ export const InlineSearch = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const performSearch = async (searchQuery: string) => {
-        setIsLoading(true);
-        try {
-            // TODO: Replace with actual API call
-            // const response = await fetch(`/api/search?query=${encodeURIComponent(searchQuery)}&limit=15`);
-            // const data = await response.json();
-
-            // Mock data for now
-            const mockResults: SearchResults = {
-                gigs: searchQuery.toLowerCase().includes('market') ? [
-                    {
-                        id: 'gig123',
-                        title: 'Social Media Marketing Campaign',
-                        description: 'Looking for experienced marketer...',
-                        budget: '$500-$1000',
-                        clientName: 'ABC Company',
-                        postedDate: '2025-10-20'
-                    },
-                    {
-                        id: 'gig124',
-                        title: 'Email Marketing Setup',
-                        description: 'Need help setting up email campaigns...',
-                        budget: '$300-$600',
-                        clientName: 'XYZ Corp',
-                        postedDate: '2025-10-22'
-                    }
-                ] : [],
-                companies: searchQuery.toLowerCase().includes('market') ? [
-                    {
-                        id: 'company456',
-                        name: 'Marketing Pro Agency',
-                        industry: 'Marketing',
-                        location: 'Lagos, Nigeria',
-                        gigCount: 24
-                    }
-                ] : [],
-                workers: searchQuery.toLowerCase().includes('market') ? [
-                    {
-                        id: 'user789',
-                        name: 'John Doe',
-                        title: 'Digital Marketing Expert',
-                        rating: 4.8,
-                        skills: ['SEO', 'Social Media', 'Content Marketing'],
-                        certifications: ['Digital Marketing - Developer']
-                    }
-                ] : [],
-                skills: searchQuery.toLowerCase().includes('market') ? [
-                    {
-                        id: 'skill_dm',
-                        name: 'Digital Marketing',
-                        workerCount: 142,
-                        gigCount: 58
-                    }
-                ] : []
-            };
-
-            setResults(mockResults);
-            setIsOpen(true);
-        } catch (error) {
-            console.error('Search error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleClear = () => {
         setQuery('');
         setResults(null);
         setIsOpen(false);
+        setError(null);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -148,10 +147,14 @@ export const InlineSearch = () => {
     return (
         <div className="relative w-full" ref={searchRef}>
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                {isLoading ? (
+                    <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none animate-spin" />
+                ) : (
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                )}
                 <input
                     type="search"
-                    placeholder="Search jobs, companies, skills..."
+                    placeholder="Search jobs, gigs, freelancers, messages..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => query.length >= 2 && results && setIsOpen(true)}
@@ -161,12 +164,15 @@ export const InlineSearch = () => {
                         "bg-background text-sm",
                         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0",
                         "transition-all duration-200",
-                        "placeholder:text-muted-foreground"
+                        "placeholder:text-muted-foreground",
+                        error && "border-destructive"
                     )}
                     autoComplete="off"
-                    aria-label="Universal search"
+                    aria-label="Universal search across TrustWork"
+                    aria-invalid={error ? 'true' : 'false'}
+                    aria-describedby={error ? 'search-error' : undefined}
                 />
-                {query && (
+                {query && !isLoading && (
                     <button
                         onClick={handleClear}
                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-accent transition-colors"
@@ -177,7 +183,17 @@ export const InlineSearch = () => {
                 )}
             </div>
 
-            {isOpen && (
+            {error && (
+                <div
+                    id="search-error"
+                    className="absolute top-full left-0 right-0 mt-1 p-2 text-xs text-destructive bg-destructive/10 rounded-md border border-destructive/20"
+                    role="alert"
+                >
+                    {error}
+                </div>
+            )}
+
+            {isOpen && !error && (
                 <div className="absolute top-full left-0 right-0 mt-2 z-[100]">
                     <SearchResultsDropdown
                         results={results}

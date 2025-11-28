@@ -1,18 +1,76 @@
 // Add custom jest matchers for testing-library
 import '@testing-library/jest-dom';
+import './test/setup-a11y';
+
+// Mock supabaseClient module to avoid parsing envValidation (import.meta) under Jest
+jest.mock('@/lib/supabaseClient', () => {
+    const queryBuilder = () => ({
+        select: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        single: jest.fn(() => Promise.resolve({ data: {}, error: null })),
+        then: jest.fn((resolve: (arg: unknown) => unknown) => resolve({ data: [], error: null })),
+    });
+
+    return {
+        __esModule: true,
+        default: {
+            auth: {
+                getSession: jest.fn(() => Promise.resolve({
+                    data: {
+                        session: {
+                            user: {
+                                id: 'test-user-id',
+                                email: 'test@example.com',
+                                user_metadata: {
+                                    full_name: 'Test User',
+                                    role: 'jobseeker',
+                                },
+                            },
+                            access_token: 'test-access-token',
+                            refresh_token: 'test-refresh-token',
+                        },
+                    },
+                    error: null,
+                })),
+                onAuthStateChange: jest.fn(() => ({
+                    data: { subscription: { unsubscribe: jest.fn() } },
+                })),
+            },
+            from: jest.fn(() => queryBuilder()),
+            channel: jest.fn(() => ({
+                on: jest.fn().mockReturnThis(),
+                subscribe: jest.fn(() => ({ status: 'subscribed' })),
+                unsubscribe: jest.fn(() => ({ status: 'unsubscribed' })),
+            })),
+        },
+    };
+});
 
 // Mock import.meta for Vite env variables
-(globalThis as unknown as { import: { meta: { env: Record<string, unknown> } } }).import = {
-    meta: {
-        env: {
-            DEV: false,
-            PROD: true,
-            MODE: 'test',
-            VITE_SUPABASE_URL: 'https://test-project.supabase.co',
-            VITE_SUPABASE_ANON_KEY: 'test-anon-key-1234567890abcdefghijklmnopqrstuvwxyz',
-        }
+const importMeta = {
+    env: {
+        DEV: false,
+        PROD: true,
+        MODE: 'test',
+        VITE_SUPABASE_URL: 'https://test-project.supabase.co',
+        VITE_SUPABASE_ANON_KEY: 'test-anon-key-1234567890abcdefghijklmnopqrstuvwxyz',
     }
 };
+
+// Set import.meta globally
+Object.defineProperty(globalThis, 'import', {
+    value: { meta: importMeta },
+    writable: true,
+    configurable: true
+});
+
+// Also mock for any direct import.meta access
+(globalThis as typeof globalThis & { importMeta: typeof importMeta }).importMeta = importMeta;
 
 // Mock Supabase client
 jest.mock('@supabase/supabase-js', () => ({
@@ -83,8 +141,10 @@ jest.mock('@supabase/supabase-js', () => ({
             update: jest.fn().mockReturnThis(),
             delete: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
+            or: jest.fn().mockReturnThis(),
+            order: jest.fn().mockReturnThis(),
             single: jest.fn(() => Promise.resolve({ data: {}, error: null })),
-            then: jest.fn((resolve) => resolve({ data: [], error: null }))
+            then: jest.fn((resolve: (arg: unknown) => unknown) => resolve({ data: [], error: null })),
         })),
         channel: jest.fn(() => ({
             on: jest.fn().mockReturnThis(),

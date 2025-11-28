@@ -1,8 +1,33 @@
 // Assignment System Types
 
-export type SkillCategory = 'digital-marketing' | 'graphic-design' | 'content-writing';
+export type SkillCategory = 
+  | 'digital-marketing'
+  | 'web-development'
+  | 'graphic-design'
+  | 'writing-translation'
+  | 'video-animation'
+  | 'music-audio'
+  | 'business'
+  | 'data-entry'
+  | 'customer-service'
+  | 'sales-marketing'
+  | 'engineering'
+  | 'architecture'
+  | 'legal'
+  | 'accounting'
+  | 'hr'
+  | 'consulting'
+  | 'education'
+  | 'healthcare'
+  | 'real-estate'
+  | 'logistics'
+  | 'manufacturing'
+  | 'hospitality'
+  | 'beauty-wellness'
+  | 'fitness'
+  | 'photography';
 
-export type AssignmentLevel = 'foundation' | 'developer' | 'advanced' | 'expert';
+export type AssignmentLevel = 'foundation' | 'intermediate' | 'advanced' | 'expert';
 
 export type AssignmentStatus = 'locked' | 'unlocked' | 'passed' | 'failed' | 'in-progress';
 
@@ -125,8 +150,8 @@ export const LEVEL_REQUIREMENTS: Record<AssignmentLevel, AssignmentLevelRequirem
         questionPoolSize: 25,
         timeAllowed: 40,
     },
-    developer: {
-        level: 'developer',
+    intermediate: {
+        level: 'intermediate',
         totalGigsRequired: 6,
         previousLevelRequired: 'foundation',
         retakeCost: 15,
@@ -138,7 +163,7 @@ export const LEVEL_REQUIREMENTS: Record<AssignmentLevel, AssignmentLevelRequirem
     advanced: {
         level: 'advanced',
         totalGigsRequired: 9,
-        previousLevelRequired: 'developer',
+        previousLevelRequired: 'intermediate',
         retakeCost: 20,
         passScore: 70,
         totalQuestions: 12,
@@ -159,13 +184,35 @@ export const LEVEL_REQUIREMENTS: Record<AssignmentLevel, AssignmentLevelRequirem
 
 export const SKILL_DISPLAY_NAMES: Record<SkillCategory, string> = {
     'digital-marketing': 'Digital Marketing',
+    'web-development': 'Web Development',
     'graphic-design': 'Graphic Design',
-    'content-writing': 'Content Writing',
+    'writing-translation': 'Writing & Translation',
+    'video-animation': 'Video & Animation',
+    'music-audio': 'Music & Audio',
+    'business': 'Business',
+    'data-entry': 'Data Entry',
+    'customer-service': 'Customer Service',
+    'sales-marketing': 'Sales & Marketing',
+    'engineering': 'Engineering',
+    'architecture': 'Architecture',
+    'legal': 'Legal',
+    'accounting': 'Accounting',
+    'hr': 'Human Resources',
+    'consulting': 'Consulting',
+    'education': 'Education',
+    'healthcare': 'Healthcare',
+    'real-estate': 'Real Estate',
+    'logistics': 'Logistics',
+    'manufacturing': 'Manufacturing',
+    'hospitality': 'Hospitality',
+    'beauty-wellness': 'Beauty & Wellness',
+    'fitness': 'Fitness',
+    'photography': 'Photography',
 };
 
 export const LEVEL_DISPLAY_NAMES: Record<AssignmentLevel, string> = {
     foundation: 'Foundation',
-    developer: 'Developer',
+    intermediate: 'Intermediate',
     advanced: 'Advanced',
     expert: 'Expert',
 };

@@ -17,10 +17,15 @@ import {
   Users,
   CheckCircle,
   AlertTriangle,
-  Eye
+  Eye,
+  Award
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { createAssignment } from "@/lib/api/assignments";
+import { SkillCategory, SKILL_DISPLAY_NAMES, AssignmentLevel, LEVEL_DISPLAY_NAMES } from "@/types/assignments";
+import { SkillTestSelector } from "@/components/skill-tests";
+import type { SkillTestRequirement } from "@/types/skill-tests";
 
 interface JobForm {
   title: string;
@@ -37,6 +42,9 @@ interface JobForm {
   urgent: boolean;
   experienceLevel: string;
   department: string;
+  category: SkillCategory | "";
+  requiredCertificationLevel: AssignmentLevel | "";
+  skillTest: SkillTestRequirement;
 }
 
 const PostJob = () => {
@@ -61,7 +69,15 @@ const PostJob = () => {
     remote: false,
     urgent: false,
     experienceLevel: "",
-    department: ""
+    department: "",
+    category: "",
+    requiredCertificationLevel: "",
+    skillTest: {
+      required: false,
+      templateId: null,
+      difficulty: null,
+      passingScore: 70
+    }
   });
 
   const updateField = <K extends keyof JobForm>(field: K, value: JobForm[K]) => {
@@ -94,25 +110,51 @@ const PostJob = () => {
     setIsSubmitting(true);
 
     // Validate required fields
-    if (!formData.title || !formData.location || !formData.type || !formData.description) {
+    if (!formData.title || !formData.location || !formData.type || !formData.description || !formData.category) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including skill category.",
         variant: "destructive"
       });
       setIsSubmitting(false);
       return;
     }
 
-    // Simulate job posting
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Create assignment in database
+      const assignment = await createAssignment({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget_min: formData.salaryMin ? parseInt(formData.salaryMin) : undefined,
+        budget_max: formData.salaryMax ? parseInt(formData.salaryMax) : undefined,
+        budget_type: 'fixed',
+        required_skills: formData.requirements,
+        experience_level: (formData.experienceLevel === 'mid' ? 'intermediate' : formData.experienceLevel) as 'entry' | 'intermediate' | 'expert' | 'any' | undefined,
+        job_type: formData.type === 'full-time' ? 'full_time' :
+          formData.type === 'part-time' ? 'part_time' :
+            formData.type as 'contract' | 'freelance' | undefined,
+        remote_allowed: formData.remote,
+        location: formData.location,
+        urgent: formData.urgent,
+        status: 'open',
+        required_certification_level: formData.requiredCertificationLevel || null
+      });
+
       toast({
         title: "Job Posted Successfully!",
-        description: "Your job posting is now live and will be reviewed within 24 hours.",
+        description: `Your job posting "${assignment.title}" is now live.`,
       });
-      navigate('/dashboard/employer');
-    }, 2000);
+      navigate('/jobs');
+    } catch (error) {
+      toast({
+        title: "Failed to Post Job",
+        description: error instanceof Error ? error.message : "An error occurred while posting the job.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const previewData = {
@@ -127,10 +169,10 @@ const PostJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-muted/20 p-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Post a New Job</h1>
             <p className="text-muted-foreground">Find the perfect candidate for your team</p>
@@ -246,6 +288,61 @@ const PostJob = () => {
                   </div>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Award className="h-4 w-4" />
+                      Skill Category *
+                    </label>
+                    <Select 
+                      value={formData.category} 
+                      onValueChange={(value) => updateField('category', value as SkillCategory)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select skill category" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {Object.entries(SKILL_DISPLAY_NAMES).map(([key, displayName]) => (
+                          <SelectItem key={key} value={key}>
+                            {displayName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Applicants may need to pass skill assessments in this category
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Award className="h-4 w-4" />
+                      Required Certification Level
+                    </label>
+                    <Select 
+                      value={formData.requiredCertificationLevel} 
+                      onValueChange={(value) => updateField('requiredCertificationLevel', value as AssignmentLevel)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="None required" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None (Optional)</SelectItem>
+                        {Object.entries(LEVEL_DISPLAY_NAMES).map(([key, displayName]) => (
+                          <SelectItem key={key} value={key}>
+                            {displayName} Level
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.requiredCertificationLevel 
+                        ? "Applicants must have this certification level or higher"
+                        : "No certification required - all skill levels can apply"}
+                    </p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block">Job Description *</label>
                   <Textarea
@@ -261,7 +358,7 @@ const PostJob = () => {
                     <Checkbox
                       id="remote"
                       checked={formData.remote}
-                      onCheckedChange={(checked) => updateField('remote', checked)}
+                      onCheckedChange={(checked) => updateField('remote', !!checked)}
                     />
                     <label htmlFor="remote" className="text-sm">Remote work available</label>
                   </div>
@@ -270,7 +367,7 @@ const PostJob = () => {
                     <Checkbox
                       id="urgent"
                       checked={formData.urgent}
-                      onCheckedChange={(checked) => updateField('urgent', checked)}
+                      onCheckedChange={(checked) => updateField('urgent', !!checked)}
                     />
                     <label htmlFor="urgent" className="text-sm">Urgent hiring</label>
                   </div>
@@ -383,6 +480,19 @@ const PostJob = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Skill Test Section */}
+                <SkillTestSelector
+                  category={formData.category || undefined}
+                  value={formData.skillTest}
+                  onChange={(skillTest) => updateField('skillTest', skillTest)}
+                  disabled={!formData.category}
+                />
+                {!formData.category && (
+                  <p className="text-sm text-muted-foreground">
+                    Please select a skill category in the Job Details tab to enable skill testing
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -464,6 +574,23 @@ const PostJob = () => {
                             {benefit}
                           </Badge>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Skill Test Preview */}
+                  {formData.skillTest.required && (
+                    <div className="mt-4 p-4 border rounded-lg border-primary/30 bg-primary/5">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary" />
+                        Skill Test Required
+                      </h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>Difficulty: <Badge variant="outline" className="ml-1 capitalize">{formData.skillTest.difficulty}</Badge></p>
+                        <p>Passing Score: <span className="font-medium">{formData.skillTest.passingScore}%</span></p>
+                        <p className="mt-2 text-xs">
+                          💡 Applicants must pass this test before applying
+                        </p>
                       </div>
                     </div>
                   )}

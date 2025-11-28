@@ -121,3 +121,5 @@ bundle-stats.json
 # Documentation files (development notes, not for version control)
 /*.md
 !README.md
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

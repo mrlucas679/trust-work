@@ -2,13 +2,28 @@
 
 ## Architecture Overview
 
-TrustWork is a React + TypeScript + Vite freelance platform using Supabase for backend services. The app follows a layered architecture with strict layout constraints and comprehensive testing requirements.
+TrustWork is a **safety-focused job marketplace** that connects job seekers with verified employers. The platform is built as a React + TypeScript + Vite application using Supabase for backend services, with emphasis on trust, security, and user safety throughout.
+
+### Business Context
+- **Verified employer profiles** with trust badges and business verification
+- **Job and gig posting** capabilities for flexible work arrangements
+- **User safety features** including scam prevention and reporting tools
+- **Application tracking system** with skill assessments
+- **Messaging system** with secure communication
+- **Payment protection** for secure transactions
+- **Review and rating system** for transparency
+- **Safety center** with comprehensive reporting tools
 
 ### Core Stack
-- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
-- **State**: TanStack Query for server state, React Context for auth
-- **Backend**: Supabase (auth, database, real-time subscriptions)
-- **Testing**: Jest + React Testing Library (80% coverage threshold)
+- **Frontend**: React 18.3 + TypeScript + Vite 5.4 + Tailwind CSS + shadcn/ui
+- **UI Components**: Radix UI primitives for accessibility + Lucide React icons
+- **State**: TanStack Query (React Query) for server state, React Context for auth
+- **Forms**: React Hook Form + Zod validation with @hookform/resolvers
+- **Theming**: next-themes for dark/light mode
+- **Backend**: Supabase (auth, database, real-time subscriptions, storage)
+- **Testing**: Jest + React Testing Library (80% coverage threshold) + Playwright (E2E)
+- **Visualization**: Recharts for data visualization
+- **Monitoring**: Web Vitals for performance monitoring, Sentry for error tracking
 - **Deployment**: Static hosting with `.env` configuration
 
 ## Critical Layout Rules (STRICT)
@@ -31,14 +46,38 @@ The layout system has specific requirements that must be followed exactly:
 
 ## Key Patterns
 
+### Naming Conventions
+- **Component files**: PascalCase (e.g., `VerificationBadge.tsx`)
+- **Interface names**: PascalCase with Props suffix (e.g., `VerificationBadgeProps`)
+- **Hook files**: camelCase with 'use' prefix (e.g., `use-toast.ts`)
+- **Utility files**: kebab-case (e.g., `web-vitals.ts`)
+
 ### Component Organization
 ```
 src/components/
-├── auth/           # Authentication components
+├── analytics/      # Dashboard analytics components
+├── applications/   # Application tracking components
+├── auth/           # Authentication & business verification
+├── certifications/ # Certification display
+├── error/          # Error boundaries
 ├── layout/         # Layout components (AppLayout, DashboardLayout, etc.)
-├── ui/             # shadcn/ui components (80+ reusable components)
-└── feature/        # Feature-specific components (matching/, payments/, etc.)
+├── matching/       # Job/freelancer matching engine
+├── notifications/  # Notification center & bell
+├── payments/       # Payment-related components
+├── portfolio/      # Portfolio management
+├── pwa/            # PWA install prompts
+├── quiz/           # Skills assessment quizzes
+├── reviews/        # Review cards & ratings
+├── search/         # Search filters & results
+├── trust/          # Trust badges & verification
+└── ui/             # shadcn/ui components (80+ reusable components)
 ```
+
+### Component Composition Principles
+- **Compound components** for complex UIs (e.g., Card with CardHeader, CardContent)
+- **Render props** for flexible component APIs
+- **HOCs** for shared functionality (error boundaries, route protection)
+- **Composition over inheritance** - build complex UIs by composing simpler components
 
 ### Data Flow
 - **Mock Data**: `src/data/mockData.ts` contains comprehensive type definitions
@@ -93,16 +132,34 @@ npm run validate         # Full validation pipeline
 - Mobile-first responsive design with `useIsMobile()` hook
 - Accessibility: includes skip links, proper ARIA labels
 
+### Styling Best Practices
+- **Tailwind CSS** for all styling (utility-first approach)
+- **CSS Modules** for component-specific styles when needed
+- **CSS variables** for theming (defined in `index.css`)
+- **Responsive design** using Tailwind breakpoints (sm, md, lg, xl, 2xl)
+- **CSS animations** with tailwindcss-animate plugin
+- Use `cn()` utility for conditional classes, prefer Tailwind utilities
+
 ### Form Handling
 - React Hook Form + Zod validation (`@hookform/resolvers`)
 - Form components in `@/components/ui/form.tsx`
 - Validation schemas in `src/lib/validations.ts`
+- User-friendly error messages for all validation failures
 
 ### State Management
 - **Server State**: TanStack Query for API calls
 - **Client State**: React Context + hooks
 - **Local State**: useState for component-specific state
+- **Form State**: React Hook Form for form management
+- **Theme State**: next-themes for dark/light mode
 - **Async Operations**: Custom `use-async-operation.ts` hook
+
+### Error Handling Patterns
+- **Global error boundary** for uncaught errors
+- **Component-specific error boundaries** (e.g., `SidebarErrorBoundary`)
+- **Form validation errors** with React Hook Form
+- **API error handling** with proper user feedback
+- **User-friendly error messages** - never expose technical details
 
 ## Security & Performance
 
@@ -111,12 +168,29 @@ npm run validate         # Full validation pipeline
 - Supabase RLS policies enforce data access
 - Input validation with Zod schemas
 - SAST scanning required for security issues
+- **XSS prevention** through React's built-in escaping
+- **CSRF protection** implementation required
+- **Secure routing** with proper authentication checks
+- **Safe storage** of sensitive data
+- **Two-factor authentication** support
+- **User verification system** for employer trust badges
 
 ### Performance
 - Lazy loading for all non-critical routes
 - Component code splitting with `React.lazy()`
 - Optimized bundling with Vite
 - Image optimization and responsive loading
+- **Web Vitals monitoring** for real-time metrics
+- **Memoization** for expensive computations (React.memo, useMemo, useCallback)
+- **Efficient re-rendering** strategies
+
+### Accessibility Requirements
+- **ARIA attributes** for all interactive elements
+- **Keyboard navigation** support (Tab, Enter, Escape, Arrow keys)
+- **Color contrast** compliance (WCAG AA minimum)
+- **Screen reader** compatibility
+- **Focus management** (visible focus indicators, logical tab order)
+- **Skip links** for main content navigation
 
 ## Common Gotchas
 
@@ -126,6 +200,34 @@ npm run validate         # Full validation pipeline
 4. **Mobile Breakpoint**: Use `useIsMobile()` hook, breakpoint is 768px
 5. **Styling**: Use `cn()` utility for conditional classes, prefer Tailwind utilities
 6. **Testing Coverage**: 80% threshold is enforced - write tests for new components
+
+## Git Workflow & CI/CD
+
+### Branch Strategy
+- **Feature branches**: `feature/feature-name`
+- **Bugfix branches**: `bugfix/issue-description`
+- **Hotfix branches**: `hotfix/critical-fix`
+
+### Commit Standards
+- **Format**: `type(scope): description`
+- **Types**: feat, fix, docs, style, refactor, test, chore
+- **Examples**: 
+  - `feat(auth): add social login buttons`
+  - `fix(layout): correct navbar z-index on mobile`
+  - `docs(api): update authentication flow diagram`
+
+### Pull Request Process
+- Use `.github/PULL_REQUEST_TEMPLATE.md` template
+- Link related issues with keywords (Closes #123, Fixes #456)
+- Ensure all CI checks pass before requesting review
+- At least one approval required for merge
+- Squash and merge to keep history clean
+
+### CI/CD Considerations
+- **Build optimization**: Production builds use Vite optimization
+- **Environment configs**: Separate `.env` files for dev/staging/production
+- **Dependency management**: Regular updates via Dependabot
+- **Version control**: Semantic versioning (MAJOR.MINOR.PATCH)
 
 ## File Modification Priorities
 

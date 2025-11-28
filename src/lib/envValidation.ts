@@ -1,96 +1,125 @@
 /**
- * Environment variable validation and configuration
- * Validates required environment variables on app startup
+ * Environment configuration
  */
-
-interface EnvConfig {
-    SUPABASE_URL: string;
-    SUPABASE_ANON_KEY: string;
+export interface EnvironmentConfig {
+    SUPABASE_URL: string
+    SUPABASE_ANON_KEY: string
 }
 
-class EnvironmentError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'EnvironmentError';
+/**
+ * S3 Storage configuration (optional)
+ */
+export interface S3StorageConfig {
+    S3_ENDPOINT?: string
+    S3_REGION?: string
+    STORAGE_BUCKET?: string
+}
+
+/**
+ * Full environment configuration including optional S3
+ */
+export interface FullEnvironmentConfig extends EnvironmentConfig, S3StorageConfig { }
+
+/**
+ * Get environment variables without validation
+ * Works in both Vite (import.meta.env) and Jest (globalThis['import.meta'].env) environments
+ */
+export function getEnvironment(): FullEnvironmentConfig {
+    // In Jest, import.meta is polyfilled on globalThis
+    // In Vite/browser, it's available directly
+    const env = (globalThis as any)['import.meta']?.env || import.meta?.env || {};
+    
+    return {
+        SUPABASE_URL: env.VITE_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY || '',
+        S3_ENDPOINT: env.VITE_SUPABASE_S3_ENDPOINT,
+        S3_REGION: env.VITE_SUPABASE_S3_REGION,
+        STORAGE_BUCKET: env.VITE_SUPABASE_STORAGE_BUCKET,
     }
 }
 
 /**
- * Validates and returns environment configuration
- * @throws {EnvironmentError} If required environment variables are missing
+ * Check if S3 storage is configured (optional feature)
  */
-export function validateEnvironment(): EnvConfig {
-    const errors: string[] = [];
+export function isS3Configured(): boolean {
+    const endpoint = import.meta.env.VITE_SUPABASE_S3_ENDPOINT
+    const region = import.meta.env.VITE_SUPABASE_S3_REGION
+    return !!(endpoint && region)
+}
 
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+/**
+ * Get S3 configuration if available
+ */
+export function getS3Config(): S3StorageConfig | null {
+    if (!isS3Configured()) return null
+    return {
+        S3_ENDPOINT: import.meta.env.VITE_SUPABASE_S3_ENDPOINT,
+        S3_REGION: import.meta.env.VITE_SUPABASE_S3_REGION,
+        STORAGE_BUCKET: import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'resumes',
+    }
+}
 
-    if (!SUPABASE_URL) {
-        errors.push('VITE_SUPABASE_URL is not defined');
-    } else if (!isValidUrl(SUPABASE_URL)) {
-        errors.push('VITE_SUPABASE_URL is not a valid URL');
+/**
+ * Validate environment variables and return config
+ * @throws {Error} If environment variables are missing or invalid
+ */
+export function validateEnvironment(): EnvironmentConfig {
+    const errors: string[] = []
+    const env = getEnvironment()
+
+    // Check for missing values
+    if (!env.SUPABASE_URL) {
+        errors.push('- VITE_SUPABASE_URL is not defined')
+    }
+    if (!env.SUPABASE_ANON_KEY) {
+        errors.push('- VITE_SUPABASE_ANON_KEY is not defined')
     }
 
-    if (!SUPABASE_ANON_KEY) {
-        errors.push('VITE_SUPABASE_ANON_KEY is not defined');
-    } else if (SUPABASE_ANON_KEY.length < 20) {
-        errors.push('VITE_SUPABASE_ANON_KEY appears to be invalid (too short)');
+    // Validate URL format
+    if (env.SUPABASE_URL) {
+        try {
+            new URL(env.SUPABASE_URL)
+        } catch {
+            errors.push('- VITE_SUPABASE_URL is not a valid URL')
+        }
     }
 
+    // Validate anon key format (should be a JWT-like string)
+    if (env.SUPABASE_ANON_KEY && env.SUPABASE_ANON_KEY.length < 20) {
+        errors.push('- VITE_SUPABASE_ANON_KEY appears to be invalid (too short)')
+    }
+
+    // If there are errors, throw with helpful message
     if (errors.length > 0) {
-        const errorMessage = [
-            '❌ Environment Configuration Error',
-            '',
-            'Missing or invalid environment variables:',
-            ...errors.map(err => `  • ${err}`),
-            '',
-            '📝 To fix this:',
-            '  1. Create a .env file in the project root',
-            '  2. Add the following variables:',
-            '     VITE_SUPABASE_URL=your_supabase_project_url',
-            '     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key',
-            '  3. Restart the development server',
-            '',
-            '💡 Get your Supabase credentials from:',
-            '   https://app.supabase.com/project/_/settings/api',
-        ].join('\n');
+        const errorMessage = `
+Environment Configuration Error:
+${errors.join('\n')}
 
-        throw new EnvironmentError(errorMessage);
+To fix this:
+1. Create a .env file in the project root
+2. Add the following variables:
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+3. Restart the development server
+
+Get your Supabase credentials from:
+https://app.supabase.com/project/_/settings/api
+    `.trim()
+
+        throw new Error(errorMessage)
     }
 
-    return {
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY,
-    };
-}
-
-function isValidUrl(url: string): boolean {
-    try {
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
+    return env
 }
 
 /**
- * Gets environment config with safe fallbacks (for testing)
- */
-export function getEnvironment(): EnvConfig {
-    return {
-        SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
-        SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-    };
-}
-
-/**
- * Checks if environment is properly configured
+ * Check if environment is properly configured
  */
 export function isEnvironmentConfigured(): boolean {
     try {
-        validateEnvironment();
-        return true;
+        validateEnvironment()
+        return true
     } catch {
-        return false;
+        return false
     }
 }
