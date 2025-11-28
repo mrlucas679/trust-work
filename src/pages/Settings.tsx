@@ -16,12 +16,17 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { uploadCv } from "@/lib/storage";
+import { useTwoFactor } from "@/hooks/use-two-factor";
+import { TwoFactorSetup } from "@/components/auth/TwoFactorSetup";
 
 const Settings = () => {
   const { toast } = useToast();
   const { supabase, user } = useSupabase();
+  const { status: twoFactorStatus, loading: twoFactorLoading, disable: disableTwoFactor, checkStatus: refreshTwoFactorStatus } = useTwoFactor();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [twoFactorSetupOpen, setTwoFactorSetupOpen] = useState(false);
+  const [disabling2FA, setDisabling2FA] = useState(false);
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -561,12 +566,62 @@ const Settings = () => {
                           Add an extra layer of security to your account
                         </p>
                         <div className="flex items-center gap-3">
-                          <Badge variant="outline" className="border-warning text-warning">
-                            Not Enabled
-                          </Badge>
-                          <Button variant="outline">Enable 2FA</Button>
+                          {twoFactorLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : twoFactorStatus.enabled ? (
+                            <>
+                              <Badge variant="outline" className="border-green-500 text-green-600">
+                                Enabled
+                              </Badge>
+                              <Button 
+                                variant="outline" 
+                                onClick={async () => {
+                                  setDisabling2FA(true);
+                                  const success = await disableTwoFactor();
+                                  setDisabling2FA(false);
+                                  if (success) {
+                                    toast({
+                                      title: "2FA Disabled",
+                                      description: "Two-factor authentication has been disabled for your account.",
+                                    });
+                                  } else {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to disable 2FA. Please try again.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                disabled={disabling2FA}
+                              >
+                                {disabling2FA ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Disabling...
+                                  </>
+                                ) : (
+                                  'Disable 2FA'
+                                )}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Badge variant="outline" className="border-warning text-warning">
+                                Not Enabled
+                              </Badge>
+                              <Button variant="outline" onClick={() => setTwoFactorSetupOpen(true)}>
+                                Enable 2FA
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
+
+                      <TwoFactorSetup 
+                        open={twoFactorSetupOpen}
+                        onOpenChange={setTwoFactorSetupOpen}
+                        onSuccess={refreshTwoFactorStatus}
+                      />
 
                       <Separator />
 

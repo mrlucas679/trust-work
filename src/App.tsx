@@ -68,6 +68,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const BusinessVerificationPage = lazy(() => import("./pages/BusinessVerificationPage"));
 const BusinessVerificationReview = lazy(() => import("./pages/admin/BusinessVerificationReview"));
+const DisputeReview = lazy(() => import("./pages/admin/DisputeReview"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 import { ErrorBoundary } from "./components/ui/error-boundary";
@@ -182,6 +183,7 @@ const App = () => (
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><AdminDashboard /></Suspense></AppLayout>} />
                 <Route path="/admin/verifications" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><BusinessVerificationReview /></Suspense></AppLayout>} />
+                <Route path="/admin/disputes" element={<AppLayout><Suspense fallback={<PageLoadingSpinner />}><DisputeReview /></Suspense></AppLayout>} />
               </Route>
 
               {/* 404 page without layout */}
